@@ -1,0 +1,116 @@
+// Blended barbershop — PostgreSQL (Supabase-compatible)
+// Set DATABASE_URL in .env before migrate / db push
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
+}
+
+enum OrderStatus {
+  DRAFT
+  AWAITING_PAYMENT
+  PAID
+  FULFILLED
+  CANCELLED
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String?  @unique
+  phone     String?  @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  appointments Appointment[]
+  orders       Order[]
+}
+
+model Barber {
+  id        String   @id @default(cuid())
+  name      String
+  title     String // зэрэг — жишээ: "Senior Stylist"
+  imageUrl  String?
+  bio       String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  appointments Appointment[]
+}
+
+model Appointment {
+  id              String             @id @default(cuid())
+  barberId        String
+  barber          Barber             @relation(fields: [barberId], references: [id], onDelete: Cascade)
+  userId          String?
+  user            User?              @relation(fields: [userId], references: [id], onDelete: SetNull)
+  // Зочин захиалгад зориулсан талбарууд
+  customerName    String
+  customerPhone   String
+  startsAt        DateTime
+  endsAt          DateTime
+  status          AppointmentStatus  @default(PENDING)
+  notes           String?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  @@index([barberId, startsAt])
+  @@index([startsAt])
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  description String
+  priceMnt    Int // төгрөгөөр
+  imageUrl    String?
+  inStock     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  orderItems OrderItem[]
+}
+
+model Order {
+  id            String      @id @default(cuid())
+  userId        String?
+  user          User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  status        OrderStatus @default(AWAITING_PAYMENT)
+  totalMnt      Int
+  currency      String      @default("MNT")
+  paymentNote   String? // QPay / SocialPay гүйлгээний дугаар гэх мэт
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  items OrderItem[]
+
+  @@index([userId])
+  @@index([status])
+}
+
+model OrderItem {
+  id         String  @id @default(cuid())
+  orderId    String
+  order      Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId  String
+  product    Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+  quantity   Int
+  unitPriceMnt Int // захиалгын үеийн үнэ (үнэ өөрчлөгдвөл хадгална)
+
+  @@index([orderId])
+  @@index([productId])
+}
