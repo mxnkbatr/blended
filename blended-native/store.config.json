@@ -1,0 +1,15 @@
+{
+  "configVersion": 0,
+  "apple": {
+    "categories": {
+      "primary": "LIFESTYLE"
+    },
+    "info": {
+      "mn-MN": {
+        "title": "Blended Barbershop",
+        "description": "Улаанбаатарын тансаг барбершоп. Цаг захиалах, бүтээгдэхүүн худалдан авах."
+      }
+    }
+  }
+}
+
