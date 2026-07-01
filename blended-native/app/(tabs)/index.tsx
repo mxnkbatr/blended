@@ -63,21 +63,19 @@ const HomeBanner: React.FC<HomeBannerProps> = ({ isDark, onPress }) => {
       }}
       accessibilityRole="button"
       accessibilityLabel="Цаг авах"
-      style={({ pressed }) => [styles.bannerCard, { opacity: pressed ? 0.85 : 1 }]}
+      style={({ pressed }) => [
+        styles.bannerCard,
+        {
+          opacity: pressed ? 0.85 : 1,
+          backgroundColor: isDark ? '#0f1a2e' : '#f4efe6',
+        },
+      ]}
     >
       <Image
-        source={{
-          uri: 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=800&h=400&fit=crop',
-        }}
+        source={require('../../assets/logo.png')}
         style={styles.bannerImage}
-        contentFit="cover"
+        contentFit="contain"
       />
-
-      {/* Доороосоо харанхуйлж тодруулах (gradient-тай төстэй) */}
-      <View style={styles.bannerOverlay} pointerEvents="none">
-        <View style={styles.bannerOverlayStrong} />
-        <View style={styles.bannerOverlaySoft} />
-      </View>
 
       <View
         pointerEvents="none"

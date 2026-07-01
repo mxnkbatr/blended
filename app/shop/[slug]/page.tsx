@@ -21,9 +21,6 @@ export async function generateMetadata({
   return { title: p.name };
 }
 
-function formatMnt(n: number) {
-  return new Intl.NumberFormat("mn-MN").format(n) + " ₮";
-}
 
 function pickRelated(slug: string) {
   return products.filter((p) => p.slug !== slug).slice(0, 4);
@@ -41,22 +38,22 @@ export default async function ProductDetailPage({
   const related = pickRelated(product.slug);
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:py-12">
-      <nav className="text-xs text-zinc-600">
-        <Link href="/" className="hover:text-zinc-400">
+    <main className="mx-auto max-w-6xl px-4 py-8 pb-36 sm:px-6 sm:pb-8 lg:py-12">
+      <nav className="text-xs text-achira-blue/60 dark:text-achira-cream/55">
+        <Link href="/" className="hover:text-achira-blue-dark dark:hover:text-achira-cream">
           Нүүр
         </Link>
-        <span className="px-2 text-zinc-700">/</span>
-        <Link href="/shop" className="hover:text-zinc-400">
+        <span className="px-2 text-achira-blue/40 dark:text-achira-cream/40">/</span>
+        <Link href="/shop" className="hover:text-achira-blue-dark dark:hover:text-achira-cream">
           Дэлгүүр
         </Link>
-        <span className="px-2 text-zinc-700">/</span>
-        <span className="text-zinc-400">{product.name}</span>
+        <span className="px-2 text-achira-blue/40 dark:text-achira-cream/40">/</span>
+        <span className="text-achira-blue-dark dark:text-achira-cream">{product.name}</span>
       </nav>
 
       <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:items-start">
-        <div className="rounded-2xl border border-white/10 bg-zinc-900/20 p-3 backdrop-blur-md">
-          <div className="relative aspect-square overflow-hidden rounded-2xl bg-zinc-900">
+        <div className="rounded-2xl border border-achira-blue/10 bg-achira-paper/40 p-3 dark:border-achira-cream/10 dark:bg-achira-blue/8">
+          <div className="relative aspect-square overflow-hidden rounded-2xl bg-achira-paper dark:bg-achira-navy/50">
             <Image
               src={product.imageUrl}
               alt={product.name}
@@ -65,18 +62,19 @@ export default async function ProductDetailPage({
               sizes="(max-width:1024px) 100vw, 55vw"
               priority
             />
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-achira-navy/15 via-transparent to-transparent dark:from-black/25" />
           </div>
         </div>
 
-        {/* Right panel */}
         <div className="lg:sticky lg:top-24">
-          <h1 className="font-[family-name:var(--font-display)] text-2xl font-normal tracking-[0.06em] text-white sm:text-3xl">
+          <h1 className="font-[family-name:var(--font-display)] text-2xl font-normal tracking-[0.06em] text-achira-blue-dark dark:text-achira-cream sm:text-3xl">
             {product.name}
           </h1>
-          <p className="mt-3 text-sm text-zinc-500">
+          <p className="mt-3 text-sm text-achira-blue/60 dark:text-achira-cream/55">
             Бүтээгдэхүүний код:{" "}
-            <span className="font-mono text-zinc-400">{product.slug}</span>
+            <span className="font-mono text-achira-blue/75 dark:text-achira-cream/65">
+              {product.slug}
+            </span>
           </p>
 
           <ProductPurchasePanel
@@ -90,14 +88,14 @@ export default async function ProductDetailPage({
         </div>
       </div>
 
-      <section className="mt-14">
+      <section className="mt-14 pb-8">
         <div className="mb-3 flex items-end justify-between">
-          <h2 className="font-[family-name:var(--font-display)] text-xl font-normal tracking-[0.06em] text-white">
+          <h2 className="font-[family-name:var(--font-display)] text-xl font-normal tracking-[0.06em] text-achira-blue-dark dark:text-achira-cream">
             Төстэй бүтээгдэхүүнүүд
           </h2>
           <Link
             href="/shop"
-            className="text-[10px] font-medium uppercase tracking-[0.22em] text-zinc-600 hover:text-zinc-400"
+            className="text-[10px] font-medium uppercase tracking-[0.22em] text-achira-blue/55 hover:text-achira-blue-dark dark:text-achira-cream/50 dark:hover:text-achira-cream"
           >
             Бүгд
           </Link>

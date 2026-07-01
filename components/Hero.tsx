@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { BlendedMark } from "./BlendedMark";
+import { AchiraLogo } from "./AchiraLogo";
+import { AchiraWordmark } from "./AchiraWordmark";
 import { HomeBanner } from "./HomeBanner";
 import { HomeBarberSlider } from "./HomeBarberSlider";
 import { HomeBestSellerGrid } from "./HomeBestSellerGrid";
@@ -28,7 +29,7 @@ export function Hero() {
   return (
     <section className="relative flex min-h-[calc(100dvh-8.5rem)] flex-col justify-center px-4 pb-6 pt-3 md:min-h-[calc(100dvh-4rem)] md:px-8 md:py-20">
       <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_85%_55%_at_50%_-8%,rgba(24,24,27,0.08),transparent_55%),radial-gradient(ellipse_at_bottom,rgba(0,0,0,0.04),rgba(255,255,255,0.92))] dark:bg-[radial-gradient(ellipse_85%_55%_at_50%_-8%,rgba(63,63,70,0.35),transparent_55%),radial-gradient(ellipse_at_bottom,rgba(24,24,27,0.9),#000)] md:bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] md:from-zinc-800/10 md:via-white md:to-white dark:md:from-zinc-800/40 dark:md:via-black dark:md:to-black"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_85%_55%_at_50%_-8%,rgba(30,79,150,0.12),transparent_55%),radial-gradient(ellipse_at_bottom,rgba(30,79,150,0.06),var(--color-achira-cream))] dark:bg-[radial-gradient(ellipse_85%_55%_at_50%_-8%,rgba(42,98,176,0.25),transparent_55%),radial-gradient(ellipse_at_bottom,rgba(15,26,46,0.95),var(--color-achira-navy))]"
         aria-hidden
       />
 
@@ -39,38 +40,33 @@ export function Hero() {
         <HomeBestSellerGrid />
       </div>
 
-      {/* Desktop / notebook — анхны landing загвар */}
+      {/* Desktop / notebook */}
       <div className="relative mx-auto hidden w-full max-w-3xl flex-col items-center text-center md:flex">
-        <BlendedMark className="mb-8 h-16 w-28 text-white sm:h-20 sm:w-36" />
-        <p className="mb-3 text-xs uppercase tracking-[0.35em] text-zinc-500">
-          Barbershop
-        </p>
-        <h1 className="font-[family-name:var(--font-display)] text-5xl font-normal tracking-[0.12em] text-white sm:text-6xl md:text-7xl">
-          BLENDED
-        </h1>
-        <p className="mt-6 max-w-md text-sm leading-relaxed text-zinc-400 sm:text-base">
-          Тансаг, минималист орчинд уламжлалт гар урлал болон орчин үеийн
-          загварыг нэгтгэнэ.
+        <AchiraLogo className="mb-6 h-44 w-44 sm:h-52 sm:w-52" priority />
+        <AchiraWordmark size="hero" />
+        <p className="mt-6 max-w-md text-sm leading-relaxed text-achira-blue/70 dark:text-achira-cream/65 sm:text-base">
+          Гар урлалын сэтгэлгээтэй babershop — уламжлалт техник, орчин үеийн
+          загвар, өөрийн онцлог стиль.
         </p>
 
         <div className="mt-12 grid w-full max-w-lg gap-3 sm:grid-cols-3 sm:gap-4">
           {infoDesktop.map((item) => (
             <div
               key={item.label}
-              className="rounded-2xl border border-zinc-800 bg-zinc-950/60 px-4 py-4 text-left backdrop-blur-sm"
+              className="rounded-2xl border border-achira-blue/12 bg-achira-paper/60 px-4 py-4 text-left backdrop-blur-sm dark:border-achira-cream/10 dark:bg-achira-blue/10"
             >
-              <p className="text-[10px] font-medium uppercase tracking-widest text-zinc-500">
+              <p className="text-[10px] font-medium uppercase tracking-widest text-achira-blue/55 dark:text-achira-cream/50">
                 {item.label}
               </p>
               {item.href ? (
                 <a
                   href={item.href}
-                  className="mt-2 block text-sm text-zinc-100 transition-colors hover:text-white"
+                  className="mt-2 block text-sm text-achira-blue-dark transition-colors hover:text-achira-burgundy dark:text-achira-cream dark:hover:text-achira-cream"
                 >
                   {item.value}
                 </a>
               ) : (
-                <p className="mt-2 text-sm leading-snug text-zinc-100">
+                <p className="mt-2 text-sm leading-snug text-achira-blue-dark dark:text-achira-cream">
                   {item.value}
                 </p>
               )}
@@ -81,13 +77,13 @@ export function Hero() {
         <div className="mt-14 flex flex-col items-center gap-4 sm:mt-16">
           <Link
             href="/booking"
-            className="inline-flex min-w-[220px] items-center justify-center rounded-full bg-white px-10 py-4 text-sm font-semibold uppercase tracking-widest text-black transition-transform hover:scale-[1.02] active:scale-[0.98]"
+            className="inline-flex min-w-[220px] items-center justify-center rounded-full bg-achira-blue px-10 py-4 text-sm font-semibold uppercase tracking-widest text-achira-cream shadow-[0_8px_32px_rgba(30,79,150,0.25)] transition-[transform,background-color] hover:bg-achira-blue-dark hover:scale-[1.02] active:scale-[0.98] dark:bg-achira-cream dark:text-achira-blue-dark dark:hover:bg-achira-paper"
           >
             Цаг авах
           </Link>
           <Link
             href="/shop"
-            className="text-sm text-zinc-500 underline-offset-4 transition-colors hover:text-zinc-300 hover:underline"
+            className="text-sm text-achira-blue/60 underline-offset-4 transition-colors hover:text-achira-burgundy hover:underline dark:text-achira-cream/60 dark:hover:text-achira-cream"
           >
             Дэлгүүр үзэх
           </Link>

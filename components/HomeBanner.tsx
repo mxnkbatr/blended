@@ -3,46 +3,29 @@ import Image from "next/image";
 export function HomeBanner() {
   return (
     <section className="mt-4 w-full">
-      {/* Gradient frame + glow (modern highlight) */}
-      <div className="relative rounded-[1.65rem] bg-[radial-gradient(ellipse_at_top,rgba(0,0,0,0.10),transparent_55%),linear-gradient(to_bottom_right,rgba(0,0,0,0.12),rgba(0,0,0,0.02),rgba(255,255,255,0))] p-[1px] shadow-[0_28px_110px_rgba(0,0,0,0.18)] dark:bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.22),transparent_55%),linear-gradient(to_bottom_right,rgba(255,255,255,0.14),rgba(255,255,255,0.03),rgba(0,0,0,0))] dark:shadow-[0_28px_110px_rgba(0,0,0,0.75)]">
-        <div className="relative overflow-hidden rounded-[1.6rem] border border-black/10 bg-white/70 ring-1 ring-black/[0.05] backdrop-blur-sm transition-[transform,box-shadow] duration-300 ease-out hover:-translate-y-[1px] hover:shadow-[0_28px_110px_rgba(0,0,0,0.22)] active:translate-y-0 active:scale-[0.99] dark:border-white/10 dark:bg-zinc-950/35 dark:ring-white/[0.06] dark:hover:shadow-[0_28px_110px_rgba(0,0,0,0.8)]">
-          {/* Image */}
-          <div className="relative h-44 w-full sm:h-56">
+      <div className="relative rounded-[1.65rem] bg-[radial-gradient(ellipse_at_top,rgba(30,79,150,0.14),transparent_55%),linear-gradient(to_bottom_right,rgba(30,79,150,0.10),rgba(244,239,230,0.5))] p-[1px] shadow-[0_28px_80px_rgba(30,79,150,0.15)] dark:bg-[radial-gradient(ellipse_at_top,rgba(42,98,176,0.30),transparent_55%),linear-gradient(to_bottom_right,rgba(42,98,176,0.15),rgba(15,26,46,0.8))] dark:shadow-[0_28px_80px_rgba(0,0,0,0.45)]">
+        <div className="relative overflow-hidden rounded-[1.6rem] border border-achira-blue/12 bg-achira-cream ring-1 ring-achira-blue/5 backdrop-blur-sm transition-[transform,box-shadow] duration-300 ease-out hover:-translate-y-[1px] hover:shadow-[0_28px_80px_rgba(30,79,150,0.20)] active:translate-y-0 active:scale-[0.99] dark:border-achira-cream/10 dark:bg-achira-navy dark:ring-achira-cream/5">
+          <div className="relative flex h-52 w-full flex-col items-center justify-center px-6 py-8 sm:h-60">
             <Image
-              src="/home-banner-v4.png"
-              alt="Blended banner"
-              fill
-              className="pointer-events-none object-cover object-center"
-              sizes="(max-width:768px) 100vw, 1100px"
+              src="/achira-logo.png"
+              alt="Achira Artist"
+              width={200}
+              height={280}
+              className="h-36 w-auto object-contain sm:h-40"
+              sizes="(max-width:768px) 60vw, 200px"
               priority
             />
+            <p className="mt-3 text-[9px] font-medium uppercase tracking-[0.45em] text-achira-blue/55 dark:text-achira-cream/55">
+              ✦ Artist ✦
+            </p>
           </div>
 
-          {/* Modern overlays */}
           <div
-            className="pointer-events-none absolute inset-0 bg-gradient-to-t from-white/55 via-white/10 to-transparent dark:from-black/60 dark:via-black/15"
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,rgba(244,239,230,0.55),transparent_60%)] dark:bg-[radial-gradient(ellipse_at_bottom,rgba(15,26,46,0.55),transparent_60%)]"
             aria-hidden
           />
           <div
-            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(0,0,0,0.08),transparent_60%)] dark:bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.10),transparent_60%)]"
-            aria-hidden
-          />
-          <div
-            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,rgba(255,255,255,0.40),transparent_55%)] dark:bg-[radial-gradient(ellipse_at_bottom,rgba(0,0,0,0.55),transparent_55%)]"
-            aria-hidden
-          />
-          <div
-            className="pointer-events-none absolute inset-x-0 top-0 h-px bg-black/20 opacity-30 dark:bg-white/25"
-            aria-hidden
-          />
-          <div
-            className="pointer-events-none absolute inset-0 shadow-[inset_0_1px_0_rgba(0,0,0,0.06),inset_0_-1px_0_rgba(255,255,255,0.65)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.12),inset_0_-1px_0_rgba(0,0,0,0.55)]"
-            aria-hidden
-          />
-
-          {/* Subtle corner accent */}
-          <div
-            className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full bg-black/10 blur-2xl dark:bg-white/10"
+            className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full bg-achira-blue/10 blur-2xl dark:bg-achira-blue-light/15"
             aria-hidden
           />
         </div>
@@ -50,4 +33,3 @@ export function HomeBanner() {
     </section>
   );
 }
-

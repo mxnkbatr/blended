@@ -1,25 +1,27 @@
 import Link from "next/link";
-import { BlendedMark } from "./BlendedMark";
+import { AchiraLogo } from "./AchiraLogo";
+import { AchiraWordmark } from "./AchiraWordmark";
 
 export function SiteFooter() {
   return (
-    <footer className="mt-10 border-t border-white/[0.06] bg-black/30 backdrop-blur-sm">
+    <footer className="mt-10 border-t border-achira-blue/10 bg-achira-paper/40 backdrop-blur-sm dark:border-achira-cream/8 dark:bg-achira-navy/50">
       <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
         <div className="grid gap-10 md:grid-cols-12">
           <div className="md:col-span-5">
-            <div className="flex items-center gap-2 text-white">
-              <BlendedMark className="h-7 w-12 text-white/90" />
-              <span className="font-[family-name:var(--font-display)] text-sm tracking-[0.28em] text-white/90">
-                BLENDED
-              </span>
+            <div className="flex items-center gap-3">
+              <AchiraLogo className="h-12 w-12" />
+              <AchiraWordmark size="md" className="items-start" />
             </div>
-            <p className="mt-4 max-w-sm text-sm leading-relaxed text-zinc-500">
-              Тансаг babershop ба үс арчилгааны бүтээгдэхүүн. Шуурхай үйлчилгээ,
-              найдвартай захиалга.
+            <p className="mt-4 max-w-sm text-sm leading-relaxed text-achira-blue/65 dark:text-achira-cream/60">
+              Гар урлалын сэтгэлгээтэй babershop ба үс арчилгааны бүтээгдэхүүн.
+              Шуурхай үйлчилгээ, найдвартай захиалга.
             </p>
-            <div className="mt-5 space-y-1 text-sm text-zinc-500">
+            <div className="mt-5 space-y-1 text-sm text-achira-blue/65 dark:text-achira-cream/60">
               <p>120k Regis Place 3rd floor, Ulaanbaatar</p>
-              <a className="block hover:text-zinc-300" href="tel:77757747">
+              <a
+                className="block transition-colors hover:text-achira-burgundy dark:hover:text-achira-cream"
+                href="tel:77757747"
+              >
                 77757747
               </a>
               <p>10:00 — 22:00</p>
@@ -29,27 +31,39 @@ export function SiteFooter() {
           <div className="md:col-span-7">
             <div className="grid gap-8 sm:grid-cols-3">
               <div>
-                <p className="text-[10px] font-medium uppercase tracking-[0.28em] text-zinc-600">
+                <p className="text-[10px] font-medium uppercase tracking-[0.28em] text-achira-blue/50 dark:text-achira-cream/50">
                   Мэдээлэл
                 </p>
-                <ul className="mt-4 space-y-2 text-sm text-zinc-500">
+                <ul className="mt-4 space-y-2 text-sm text-achira-blue/65 dark:text-achira-cream/60">
                   <li>
-                    <Link className="hover:text-zinc-300" href="/">
+                    <Link
+                      className="transition-colors hover:text-achira-blue-dark dark:hover:text-achira-cream"
+                      href="/"
+                    >
                       Бидний тухай
                     </Link>
                   </li>
                   <li>
-                    <Link className="hover:text-zinc-300" href="/">
+                    <Link
+                      className="transition-colors hover:text-achira-blue-dark dark:hover:text-achira-cream"
+                      href="/"
+                    >
                       Үйлчилгээний нөхцөл
                     </Link>
                   </li>
                   <li>
-                    <Link className="hover:text-zinc-300" href="/">
+                    <Link
+                      className="transition-colors hover:text-achira-blue-dark dark:hover:text-achira-cream"
+                      href="/"
+                    >
                       Хүргэлтийн нөхцөл
                     </Link>
                   </li>
                   <li>
-                    <Link className="hover:text-zinc-300" href="/">
+                    <Link
+                      className="transition-colors hover:text-achira-blue-dark dark:hover:text-achira-cream"
+                      href="/"
+                    >
                       Төлбөрийн нөхцөл
                     </Link>
                   </li>
@@ -57,27 +71,39 @@ export function SiteFooter() {
               </div>
 
               <div>
-                <p className="text-[10px] font-medium uppercase tracking-[0.28em] text-zinc-600">
+                <p className="text-[10px] font-medium uppercase tracking-[0.28em] text-achira-blue/50 dark:text-achira-cream/50">
                   Тусламж
                 </p>
-                <ul className="mt-4 space-y-2 text-sm text-zinc-500">
+                <ul className="mt-4 space-y-2 text-sm text-achira-blue/65 dark:text-achira-cream/60">
                   <li>
-                    <Link className="hover:text-zinc-300" href="/booking">
+                    <Link
+                      className="transition-colors hover:text-achira-blue-dark dark:hover:text-achira-cream"
+                      href="/booking"
+                    >
                       Цаг авах
                     </Link>
                   </li>
                   <li>
-                    <Link className="hover:text-zinc-300" href="/shop">
+                    <Link
+                      className="transition-colors hover:text-achira-blue-dark dark:hover:text-achira-cream"
+                      href="/shop"
+                    >
                       Дэлгүүр
                     </Link>
                   </li>
                   <li>
-                    <Link className="hover:text-zinc-300" href="/checkout">
+                    <Link
+                      className="transition-colors hover:text-achira-blue-dark dark:hover:text-achira-cream"
+                      href="/checkout"
+                    >
                       Сагс
                     </Link>
                   </li>
                   <li>
-                    <Link className="hover:text-zinc-300" href="/profile">
+                    <Link
+                      className="transition-colors hover:text-achira-blue-dark dark:hover:text-achira-cream"
+                      href="/profile"
+                    >
                       Миний бүртгэл
                     </Link>
                   </li>
@@ -85,17 +111,23 @@ export function SiteFooter() {
               </div>
 
               <div>
-                <p className="text-[10px] font-medium uppercase tracking-[0.28em] text-zinc-600">
+                <p className="text-[10px] font-medium uppercase tracking-[0.28em] text-achira-blue/50 dark:text-achira-cream/50">
                   Сошиал
                 </p>
-                <ul className="mt-4 space-y-2 text-sm text-zinc-500">
+                <ul className="mt-4 space-y-2 text-sm text-achira-blue/65 dark:text-achira-cream/60">
                   <li>
-                    <a className="hover:text-zinc-300" href="#">
+                    <a
+                      className="transition-colors hover:text-achira-blue-dark dark:hover:text-achira-cream"
+                      href="#"
+                    >
                       Facebook
                     </a>
                   </li>
                   <li>
-                    <a className="hover:text-zinc-300" href="#">
+                    <a
+                      className="transition-colors hover:text-achira-blue-dark dark:hover:text-achira-cream"
+                      href="#"
+                    >
                       Instagram
                     </a>
                   </li>
@@ -105,12 +137,13 @@ export function SiteFooter() {
           </div>
         </div>
 
-        <div className="mt-10 flex flex-col gap-2 border-t border-white/[0.06] pt-6 text-xs text-zinc-600 sm:flex-row sm:items-center sm:justify-between">
-          <p>© BLENDED {new Date().getFullYear()} — Бүх эрх хуулиар хамгаална.</p>
-          <p className="text-zinc-700">Online shop layout inspiration: N9NE</p>
+        <div className="mt-10 flex flex-col gap-2 border-t border-achira-blue/10 pt-6 text-xs text-achira-blue/50 dark:border-achira-cream/8 dark:text-achira-cream/45 sm:flex-row sm:items-center sm:justify-between">
+          <p>
+            © ACHIRA ARTIST {new Date().getFullYear()} — Бүх эрх хуулиар
+            хамгаална.
+          </p>
         </div>
       </div>
     </footer>
   );
 }
-

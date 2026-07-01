@@ -1,5 +1,4 @@
-// Blended barbershop — PostgreSQL (Supabase-compatible)
-// Set DATABASE_URL in .env before migrate / db push
+// Blended / Achira Artist — PostgreSQL (Supabase)
 
 generator client {
   provider = "prisma-client-js"
@@ -7,7 +6,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 enum AppointmentStatus {
@@ -31,86 +29,94 @@ model User {
   email     String?  @unique
   phone     String?  @unique
   name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   appointments Appointment[]
   orders       Order[]
+
+  @@map("users")
 }
 
 model Barber {
-  id        String   @id @default(cuid())
+  id        String   @id
   name      String
-  title     String // зэрэг — жишээ: "Senior Stylist"
-  imageUrl  String?
+  title     String
+  imageUrl  String?  @map("image_url")
   bio       String?
   active    Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   appointments Appointment[]
+
+  @@map("barbers")
 }
 
 model Appointment {
-  id              String             @id @default(cuid())
-  barberId        String
-  barber          Barber             @relation(fields: [barberId], references: [id], onDelete: Cascade)
-  userId          String?
-  user            User?              @relation(fields: [userId], references: [id], onDelete: SetNull)
-  // Зочин захиалгад зориулсан талбарууд
-  customerName    String
-  customerPhone   String
-  startsAt        DateTime
-  endsAt          DateTime
-  status          AppointmentStatus  @default(PENDING)
-  notes           String?
-  createdAt       DateTime           @default(now())
-  updatedAt       DateTime           @updatedAt
+  id            String            @id @default(uuid()) @db.Uuid
+  barberId      String            @map("barber_id")
+  barber        Barber            @relation(fields: [barberId], references: [id], onDelete: Cascade)
+  userId        String?           @map("user_id")
+  user          User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+  customerName  String            @map("customer_name")
+  customerPhone String            @map("customer_phone")
+  startsAt      DateTime          @map("starts_at") @db.Timestamptz
+  endsAt        DateTime          @map("ends_at") @db.Timestamptz
+  status        AppointmentStatus @default(PENDING)
+  notes         String?
+  createdAt     DateTime          @default(now()) @map("created_at")
+  updatedAt     DateTime          @updatedAt @map("updated_at")
 
   @@index([barberId, startsAt])
   @@index([startsAt])
+  @@map("appointments")
 }
 
 model Product {
-  id          String   @id @default(cuid())
+  id          String   @id @default(uuid()) @db.Uuid
   slug        String   @unique
   name        String
   description String
-  priceMnt    Int // төгрөгөөр
-  imageUrl    String?
-  inStock     Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  priceMnt    Int      @map("price_mnt")
+  imageUrl    String?  @map("image_url")
+  inStock     Boolean  @default(true) @map("in_stock")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
   orderItems OrderItem[]
+
+  @@map("products")
 }
 
 model Order {
-  id            String      @id @default(cuid())
-  userId        String?
-  user          User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
-  status        OrderStatus @default(AWAITING_PAYMENT)
-  totalMnt      Int
-  currency      String      @default("MNT")
-  paymentNote   String? // QPay / SocialPay гүйлгээний дугаар гэх мэт
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  id          String      @id @default(cuid())
+  userId      String?     @map("user_id")
+  user        User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  status      OrderStatus @default(AWAITING_PAYMENT)
+  totalMnt    Int         @map("total_mnt")
+  currency    String      @default("MNT")
+  paymentNote String?     @map("payment_note")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
 
   items OrderItem[]
 
   @@index([userId])
   @@index([status])
+  @@map("orders")
 }
 
 model OrderItem {
-  id         String  @id @default(cuid())
-  orderId    String
-  order      Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  productId  String
-  product    Product @relation(fields: [productId], references: [id], onDelete: Restrict)
-  quantity   Int
-  unitPriceMnt Int // захиалгын үеийн үнэ (үнэ өөрчлөгдвөл хадгална)
+  id           String  @id @default(cuid())
+  orderId      String  @map("order_id")
+  order        Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId    String  @map("product_id") @db.Uuid
+  product      Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+  quantity     Int
+  unitPriceMnt Int     @map("unit_price_mnt")
 
   @@index([orderId])
   @@index([productId])
+  @@map("order_items")
 }

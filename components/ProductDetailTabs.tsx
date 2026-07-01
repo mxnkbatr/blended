@@ -13,12 +13,12 @@ export function ProductDetailTabs({
 }) {
   return (
     <Tabs.Root defaultValue="desc" className="mt-10">
-      <Tabs.List className="flex gap-1 rounded-full border border-white/10 bg-white/[0.04] p-1 backdrop-blur-md">
+      <Tabs.List className="flex gap-1 rounded-full border border-achira-blue/12 bg-achira-paper/50 p-1 dark:border-achira-cream/10 dark:bg-achira-blue/10">
         <Tabs.Trigger
           value="desc"
           className={clsx(
             tabTrigger,
-            "data-[state=active]:bg-white data-[state=active]:text-black text-zinc-400 hover:text-white",
+            "text-achira-blue/55 hover:text-achira-blue-dark data-[state=active]:bg-achira-blue data-[state=active]:text-achira-cream dark:text-achira-cream/50 dark:hover:text-achira-cream dark:data-[state=active]:bg-achira-cream dark:data-[state=active]:text-achira-blue-dark",
           )}
         >
           Тайлбар
@@ -27,7 +27,7 @@ export function ProductDetailTabs({
           value="ship"
           className={clsx(
             tabTrigger,
-            "data-[state=active]:bg-white data-[state=active]:text-black text-zinc-400 hover:text-white",
+            "text-achira-blue/55 hover:text-achira-blue-dark data-[state=active]:bg-achira-blue data-[state=active]:text-achira-cream dark:text-achira-cream/50 dark:hover:text-achira-cream dark:data-[state=active]:bg-achira-cream dark:data-[state=active]:text-achira-blue-dark",
           )}
         >
           Хүргэлт
@@ -36,7 +36,7 @@ export function ProductDetailTabs({
           value="pay"
           className={clsx(
             tabTrigger,
-            "data-[state=active]:bg-white data-[state=active]:text-black text-zinc-400 hover:text-white",
+            "text-achira-blue/55 hover:text-achira-blue-dark data-[state=active]:bg-achira-blue data-[state=active]:text-achira-cream dark:text-achira-cream/50 dark:hover:text-achira-cream dark:data-[state=active]:bg-achira-cream dark:data-[state=active]:text-achira-blue-dark",
           )}
         >
           Төлбөр
@@ -44,14 +44,16 @@ export function ProductDetailTabs({
       </Tabs.List>
 
       <Tabs.Content value="desc" className="mt-5">
-        <div className="rounded-2xl border border-white/10 bg-zinc-900/20 p-5 backdrop-blur-md">
-          <p className="text-sm leading-relaxed text-zinc-400">{description}</p>
+        <div className="rounded-2xl border border-achira-blue/10 bg-white/70 p-5 dark:border-achira-cream/10 dark:bg-achira-navy/40">
+          <p className="text-sm leading-relaxed text-achira-blue-dark dark:text-achira-cream/80">
+            {description}
+          </p>
         </div>
       </Tabs.Content>
 
       <Tabs.Content value="ship" className="mt-5">
-        <div className="rounded-2xl border border-white/10 bg-zinc-900/20 p-5 backdrop-blur-md">
-          <ul className="space-y-2 text-sm text-zinc-400">
+        <div className="rounded-2xl border border-achira-blue/10 bg-white/70 p-5 dark:border-achira-cream/10 dark:bg-achira-navy/40">
+          <ul className="space-y-2 text-sm text-achira-blue/75 dark:text-achira-cream/70">
             <li>- Улаанбаатар хот дотор 24–48 цагийн дотор хүргэнэ.</li>
             <li>- Захиалга баталгаажмагц хүргэлтийн мэдээлэл илгээнэ.</li>
             <li>- Бараа гэмтсэн/зөрсөн тохиолдолд 48 цагийн дотор мэдэгдэнэ.</li>
@@ -60,8 +62,8 @@ export function ProductDetailTabs({
       </Tabs.Content>
 
       <Tabs.Content value="pay" className="mt-5">
-        <div className="rounded-2xl border border-white/10 bg-zinc-900/20 p-5 backdrop-blur-md">
-          <ul className="space-y-2 text-sm text-zinc-400">
+        <div className="rounded-2xl border border-achira-blue/10 bg-white/70 p-5 dark:border-achira-cream/10 dark:bg-achira-navy/40">
+          <ul className="space-y-2 text-sm text-achira-blue/75 dark:text-achira-cream/70">
             <li>- QPay / SocialPay QR‑ээр төлөх боломжтой.</li>
             <li>- Төлбөр баталгаажсаны дараа захиалга боловсруулагдана.</li>
           </ul>
@@ -70,4 +72,3 @@ export function ProductDetailTabs({
     </Tabs.Root>
   );
 }
-

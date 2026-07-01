@@ -1,23 +1,26 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
-import { barbers } from "@/lib/data/barbers";
+import { useBarbers } from "@/hooks/useBarbers";
 
 export function HomeBarberSlider() {
+  const { barbers } = useBarbers();
   return (
     <div className="mt-7 w-full text-left">
       <div className="mb-3 flex items-end justify-between gap-2 px-0.5">
         <div>
-          <p className="text-[8px] font-medium uppercase tracking-[0.26em] text-zinc-600">
+          <p className="text-[8px] font-medium uppercase tracking-[0.26em] text-achira-blue/55 dark:text-achira-cream/50">
             Баберууд
           </p>
-          <p className="mt-0.5 font-[family-name:var(--font-display)] text-[12px] tracking-wide text-zinc-800 dark:text-zinc-300">
+          <p className="mt-0.5 font-[family-name:var(--font-display)] text-[12px] tracking-wide text-achira-blue-dark dark:text-achira-cream">
             Манай баг
           </p>
         </div>
         <Link
           href="/booking"
-          className="inline-flex items-center gap-1 rounded-full border border-black/10 bg-black/[0.02] px-2.5 py-1 text-[8px] font-semibold uppercase tracking-[0.2em] text-zinc-700 transition-colors hover:bg-black/[0.04] dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-300 dark:hover:bg-white/[0.06]"
+          className="inline-flex items-center gap-1 rounded-full border border-achira-blue/12 bg-achira-blue/5 px-2.5 py-1 text-[8px] font-semibold uppercase tracking-[0.2em] text-achira-blue transition-colors hover:bg-achira-blue/10 dark:border-achira-cream/12 dark:bg-achira-cream/5 dark:text-achira-cream dark:hover:bg-achira-cream/10"
         >
           Цаг авах
           <ChevronRight className="h-2.5 w-2.5" strokeWidth={1.25} />
@@ -26,11 +29,11 @@ export function HomeBarberSlider() {
       <div className="relative -mx-3">
         {/* Edge fades (native carousel feel) */}
         <div
-          className="pointer-events-none absolute inset-y-0 left-0 z-10 w-8 bg-gradient-to-r from-white to-transparent dark:from-black"
+          className="pointer-events-none absolute inset-y-0 left-0 z-10 w-8 bg-gradient-to-r from-achira-cream to-transparent dark:from-achira-navy"
           aria-hidden
         />
         <div
-          className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l from-white to-transparent dark:from-black"
+          className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l from-achira-cream to-transparent dark:from-achira-navy"
           aria-hidden
         />
 

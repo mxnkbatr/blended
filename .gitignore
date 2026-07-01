@@ -20,6 +20,18 @@
 # production
 /build
 
+# capacitor android build artifacts
+/android/.gradle
+/android/build
+/android/app/build
+/android/local.properties
+/android/.idea
+
+# capacitor ios build artifacts
+/ios/App/Pods
+/ios/App/build
+/ios/DerivedData
+
 # misc
 .DS_Store
 *.pem

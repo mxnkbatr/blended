@@ -1,6 +1,48 @@
 @import "tailwindcss";
 
+@theme {
+  --color-achira-blue: #1e4f96;
+  --color-achira-blue-light: #2a62b0;
+  --color-achira-blue-dark: #153a70;
+  --color-achira-cream: #f4efe6;
+  --color-achira-paper: #ebe4d8;
+  --color-achira-burgundy: #7c1f32;
+  --color-achira-ink: #1a2f4d;
+  --color-achira-navy: #0f1a2e;
+}
+
+@keyframes splash-load {
+  0% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(80%);
+  }
+  100% {
+    transform: translateX(220%);
+  }
+}
+
 ::selection {
-  background: #fafafa;
-  color: #09090b;
+  background: color-mix(in srgb, var(--color-achira-blue) 18%, var(--color-achira-cream));
+  color: var(--color-achira-blue-dark);
+}
+
+.dark ::selection {
+  background: color-mix(in srgb, var(--color-achira-blue-light) 35%, var(--color-achira-navy));
+  color: var(--color-achira-cream);
+}
+
+@layer components {
+  .admin-input {
+    @apply w-full rounded-xl border border-achira-blue/12 bg-white/90 px-3 py-2.5 text-sm text-achira-ink outline-none focus:border-achira-blue/30 dark:border-achira-cream/12 dark:bg-achira-navy/60 dark:text-achira-cream;
+  }
+
+  .admin-btn-primary {
+    @apply rounded-xl bg-achira-blue px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-achira-cream disabled:opacity-60 dark:bg-achira-cream dark:text-achira-blue-dark;
+  }
+
+  .admin-btn-secondary {
+    @apply rounded-xl border border-achira-blue/12 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-achira-blue/70 dark:border-achira-cream/12 dark:text-achira-cream/70;
+  }
 }

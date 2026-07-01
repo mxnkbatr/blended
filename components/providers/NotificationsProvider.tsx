@@ -39,7 +39,7 @@ function uid() {
 const seed: AppNotification[] = [
   {
     id: "welcome",
-    title: "Blended-д тавтай морил",
+    title: "Achira Artist-д тавтай морил",
     body: "Шинэ бүтээгдэхүүнүүдээ дэлгүүрээс үзээрэй.",
     createdAt: Date.now() - 1000 * 60 * 60 * 6,
     read: false,

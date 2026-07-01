@@ -1,12 +1,18 @@
 "use client";
 
 import Image from "next/image";
-import { CheckCircle2, ChevronRight } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
-import { barbers } from "@/lib/data/barbers";
+import { CalendarDays, CheckCircle2, ChevronRight, Clock, Scissors, User } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useBarbers } from "@/hooks/useBarbers";
+import {
+  createAppointment,
+  fetchBookedTimes,
+} from "@/lib/supabase/queries";
+import { hapticLight, hapticSuccess } from "@/lib/haptics";
 
 const OPEN_HOUR = 10;
 const CLOSE_HOUR = 22;
+const TZ = "Asia/Ulaanbaatar";
 
 function buildSlots(): string[] {
   const slots: string[] = [];
@@ -16,16 +22,21 @@ function buildSlots(): string[] {
   return slots;
 }
 
-/** Жишээ: тодорхой babert + цаг аль хэдийн захиалгатай гэж үзнэ */
-function isBooked(barberId: string, date: string, time: string): boolean {
-  const seed = `${barberId}-${date}-${time}`;
-  let n = 0;
-  for (let i = 0; i < seed.length; i++) n = (n + seed.charCodeAt(i) * (i + 1)) % 97;
-  return n % 5 === 0;
+function toISODate(d: Date): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: TZ,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(d);
 }
 
-function toISODate(d: Date) {
-  return d.toISOString().slice(0, 10);
+function toMongoliaDateTime(date: string, time: string): Date {
+  return new Date(`${date}T${time}:00+08:00`);
+}
+
+function isPastSlot(date: string, time: string): boolean {
+  return toMongoliaDateTime(date, time).getTime() <= Date.now();
 }
 
 function addDays(date: Date, days: number) {
@@ -35,40 +46,100 @@ function addDays(date: Date, days: number) {
 }
 
 function mnWeekdayShort(d: Date) {
-  // Даваа, Мягмар, Лхагва, Пүрэв, Баасан, Бямба, Ням
   return ["Ня", "Да", "Мя", "Лх", "Пү", "Ба", "Бя"][d.getDay()];
 }
 
+function scrollToRef(ref: React.RefObject<HTMLElement | null>) {
+  window.setTimeout(() => {
+    ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, 120);
+}
+
 function Stepper({ step }: { step: 1 | 2 | 3 }) {
-  const pct = step === 1 ? 34 : step === 2 ? 67 : 100;
-  const label =
-    step === 1 ? "Baber сонгох" : step === 2 ? "Өдөр сонгох" : "Цаг сонгох";
+  const steps = [
+    { n: 1, label: "Baber", Icon: Scissors },
+    { n: 2, label: "Өдөр", Icon: CalendarDays },
+    { n: 3, label: "Цаг", Icon: Clock },
+  ] as const;
 
   return (
-    <div
-      className="mb-5 rounded-2xl border border-white/10 bg-zinc-900/25 px-3 py-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-md md:mb-8"
-      role="group"
-      aria-label="Захиалгын алхам"
-    >
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-[9px] font-medium uppercase tracking-[0.26em] text-zinc-600">
-          Алхам {step} / 3
-        </p>
-        <p className="truncate text-[9px] font-medium uppercase tracking-[0.2em] text-zinc-500">
-          {label}
-        </p>
+    <>
+      {/* Mobile progress */}
+      <div
+        className="mb-5 rounded-2xl border border-achira-blue/12 bg-achira-paper/70 px-3 py-2.5 backdrop-blur-md dark:border-achira-cream/10 dark:bg-achira-blue/10 md:hidden"
+        role="group"
+        aria-label="Захиалгын алхам"
+      >
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-[9px] font-medium uppercase tracking-[0.26em] text-achira-blue/55 dark:text-achira-cream/50">
+            Алхам {step} / 3
+          </p>
+          <p className="truncate text-[9px] font-medium uppercase tracking-[0.2em] text-achira-blue/50 dark:text-achira-cream/45">
+            {step === 1 ? "Baber сонгох" : step === 2 ? "Өдөр сонгох" : "Цаг сонгох"}
+          </p>
+        </div>
+        <div className="mt-2 h-1 overflow-hidden rounded-full bg-achira-blue/10 dark:bg-achira-cream/10">
+          <div
+            className="h-full rounded-full bg-achira-blue transition-[width] duration-300 ease-out dark:bg-achira-cream/50"
+            style={{ width: `${step === 1 ? 34 : step === 2 ? 67 : 100}%` }}
+          />
+        </div>
       </div>
-      <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/[0.06]">
-        <div
-          className="h-full max-w-full rounded-full bg-white/30 transition-[width] duration-300 ease-out"
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-    </div>
+
+      {/* Desktop stepper */}
+      <ol
+        className="mb-10 hidden items-center justify-center gap-0 md:flex"
+        aria-label="Захиалгын алхам"
+      >
+        {steps.map(({ n, label, Icon }, i) => {
+          const done = step > n;
+          const active = step === n;
+          return (
+            <li key={n} className="flex items-center">
+              <div className="flex flex-col items-center gap-2">
+                <div
+                  className={`flex h-11 w-11 items-center justify-center rounded-full border transition-all ${
+                    done
+                      ? "border-achira-blue bg-achira-blue text-achira-cream dark:border-achira-cream dark:bg-achira-cream dark:text-achira-blue-dark"
+                      : active
+                        ? "border-achira-blue bg-achira-blue/10 text-achira-blue shadow-[0_0_0_4px_rgba(30,79,150,0.12)] dark:border-achira-cream dark:bg-achira-cream/10 dark:text-achira-cream dark:shadow-[0_0_0_4px_rgba(245,240,232,0.08)]"
+                        : "border-achira-blue/15 bg-white/50 text-achira-blue/35 dark:border-achira-cream/15 dark:bg-achira-navy/40 dark:text-achira-cream/35"
+                  }`}
+                >
+                  {done ? (
+                    <CheckCircle2 className="h-5 w-5" strokeWidth={1.5} />
+                  ) : (
+                    <Icon className="h-4 w-4" strokeWidth={1.5} />
+                  )}
+                </div>
+                <span
+                  className={`text-[10px] font-medium uppercase tracking-[0.22em] ${
+                    active || done
+                      ? "text-achira-blue-dark dark:text-achira-cream"
+                      : "text-achira-blue/40 dark:text-achira-cream/35"
+                  }`}
+                >
+                  {label}
+                </span>
+              </div>
+              {i < steps.length - 1 && (
+                <div
+                  className={`mx-4 mb-6 h-px w-16 sm:w-24 lg:w-32 ${
+                    step > n ? "bg-achira-blue/40 dark:bg-achira-cream/35" : "bg-achira-blue/12 dark:bg-achira-cream/10"
+                  }`}
+                  aria-hidden
+                />
+              )}
+            </li>
+          );
+        })}
+      </ol>
+    </>
   );
 }
 
 export function BookingSystem() {
+  const { barbers } = useBarbers();
   const slots = useMemo(() => buildSlots(), []);
   const [barberId, setBarberId] = useState<string | null>(null);
   const [date, setDate] = useState(() => toISODate(new Date()));
@@ -76,7 +147,14 @@ export function BookingSystem() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [bookedTimes, setBookedTimes] = useState<string[]>([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
+
   const daySectionRef = useRef<HTMLDivElement | null>(null);
+  const timeSectionRef = useRef<HTMLDivElement | null>(null);
+  const formSectionRef = useRef<HTMLDivElement | null>(null);
 
   const selectedBarber = barbers.find((b) => b.id === barberId);
   const dayOptions = useMemo(() => {
@@ -95,38 +173,123 @@ export function BookingSystem() {
 
   const step: 1 | 2 | 3 = !barberId ? 1 : !time ? 2 : 3;
 
+  useEffect(() => {
+    if (!barberId) {
+      setBookedTimes([]);
+      return;
+    }
+
+    let cancelled = false;
+    setLoadingSlots(true);
+
+    void fetchBookedTimes(barberId, date).then((times) => {
+      if (!cancelled) {
+        setBookedTimes(times);
+        setLoadingSlots(false);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [barberId, date]);
+
+  function isSlotUnavailable(slot: string): boolean {
+    if (!barberId) return true;
+    if (isPastSlot(date, slot)) return true;
+    return bookedTimes.includes(slot);
+  }
+
+  function pickBarber(id: string) {
+    void hapticLight();
+    setBarberId(id);
+    setTime(null);
+    scrollToRef(daySectionRef);
+  }
+
+  function pickDate(iso: string) {
+    void hapticLight();
+    setDate(iso);
+    setTime(null);
+    scrollToRef(timeSectionRef);
+  }
+
+  function pickTime(t: string) {
+    void hapticLight();
+    setTime(t);
+    scrollToRef(formSectionRef);
+  }
+
   function resetFlow() {
     setSubmitted(false);
+    setSubmitting(false);
+    setSubmitError(null);
+    setBarberId(null);
     setTime(null);
     setName("");
     setPhone("");
   }
 
-  function handleConfirm(e: React.FormEvent) {
+  async function handleConfirm(e: React.FormEvent) {
     e.preventDefault();
-    if (!barberId || !time || !name.trim() || !phone.trim()) return;
+    if (!barberId || !time || !name.trim() || !phone.trim() || submitting) return;
+    if (isSlotUnavailable(time)) {
+      setSubmitError("Сонгосон цаг боломжгүй болсон. Өөр цаг сонгоно уу.");
+      setTime(null);
+      return;
+    }
+
+    setSubmitting(true);
+    setSubmitError(null);
+
+    const result = await createAppointment({
+      barberId,
+      date,
+      time,
+      customerName: name,
+      customerPhone: phone,
+    });
+
+    setSubmitting(false);
+
+    if (!result.ok) {
+      setSubmitError(
+        result.error.includes("duplicate") || result.error.includes("unique")
+          ? "Энэ цаг аль хэдийн захиалагдсан байна. Өөр цаг сонгоно уу."
+          : result.error,
+      );
+      return;
+    }
+
+    await hapticSuccess();
     setSubmitted(true);
+    setBookedTimes((prev) => (prev.includes(time) ? prev : [...prev, time]));
   }
 
   if (submitted && selectedBarber && time) {
     return (
-      <div className="mx-auto max-w-lg rounded-2xl border border-white/10 bg-zinc-950/60 p-7 text-center shadow-[0_20px_80px_rgba(0,0,0,0.55)] backdrop-blur-xl">
-        <p className="text-[10px] uppercase tracking-[0.28em] text-zinc-600">
+      <div className="mx-auto max-w-lg rounded-3xl border border-achira-blue/12 bg-achira-paper/70 p-7 text-center shadow-[0_24px_80px_rgba(30,79,150,0.12)] dark:border-achira-cream/10 dark:bg-achira-blue/10 dark:shadow-[0_24px_80px_rgba(0,0,0,0.35)] md:max-w-xl md:p-10">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-achira-blue/10 text-achira-blue dark:bg-achira-cream/10 dark:text-achira-cream">
+          <CheckCircle2 className="h-7 w-7" strokeWidth={1.5} />
+        </div>
+        <p className="mt-4 text-[10px] uppercase tracking-[0.28em] text-achira-blue/55 dark:text-achira-cream/50">
           Амжилттай
         </p>
-        <h2 className="mt-2 font-[family-name:var(--font-display)] text-2xl font-normal tracking-[0.06em] text-white">
+        <h2 className="mt-2 font-[family-name:var(--font-display)] text-2xl text-achira-blue-dark dark:text-achira-cream">
           Баярлалаа
         </h2>
-        <p className="mt-4 text-sm leading-relaxed text-zinc-400">
-          <span className="text-white">{selectedBarber.name}</span> babert{" "}
-          <span className="text-white">{date}</span> өдөр{" "}
-          <span className="text-white">{time}</span> цагт захиалга илгээгдлээ.
-          Баталгаажуулалтын дуудлага хүлээнэ үү.
+        <p className="mt-4 text-sm leading-relaxed text-achira-blue/70 dark:text-achira-cream/65">
+          <span className="font-medium text-achira-blue-dark dark:text-achira-cream">
+            {selectedBarber.name}
+          </span>{" "}
+          babert{" "}
+          <span className="font-medium">{date}</span> өдөр{" "}
+          <span className="font-medium">{time}</span> цагт захиалга бүртгэгдлээ.
         </p>
         <button
           type="button"
           onClick={resetFlow}
-          className="mt-7 rounded-full border border-white/15 bg-white/[0.04] px-6 py-3 text-[11px] font-medium uppercase tracking-[0.22em] text-white/90 backdrop-blur-md transition-colors hover:border-white/25 hover:bg-white/[0.06]"
+          className="mt-7 rounded-2xl bg-achira-blue px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-achira-cream dark:bg-achira-cream dark:text-achira-blue-dark"
         >
           Шинэ захиалга
         </button>
@@ -134,24 +297,24 @@ export function BookingSystem() {
     );
   }
 
+  const sectionTitle =
+    "text-[10px] font-medium uppercase tracking-[0.32em] text-achira-blue/55 dark:text-achira-cream/50";
+  const sectionHeading =
+    "mt-1 font-[family-name:var(--font-display)] text-[18px] tracking-[0.06em] text-achira-blue-dark dark:text-achira-cream";
+  const sectionHint = "mt-2 text-[11px] leading-relaxed text-achira-blue/60 dark:text-achira-cream/55";
+
   return (
-    <div className="mx-auto w-full max-w-5xl">
+    <div className="mx-auto w-full max-w-5xl pb-28 md:pb-0">
       <Stepper step={step} />
 
-      {/* Mobile app-like layout */}
-      <div className="space-y-6 md:hidden">
+      {/* Mobile */}
+      <div className="space-y-7 md:hidden">
         <section>
           <div className="mb-3 flex items-end justify-between px-0.5">
             <div>
-              <p className="text-[10px] uppercase tracking-[0.32em] text-zinc-600">
-                1. Бабер
-              </p>
-              <h2 className="mt-1 font-[family-name:var(--font-display)] text-[18px] font-normal tracking-[0.08em] text-white">
-                Baber сонгох
-              </h2>
-              <p className="mt-2 text-[11px] leading-relaxed text-zinc-600">
-                Та үйлчлүүлэх бабераа сонгоно уу.
-              </p>
+              <p className={sectionTitle}>1. Бабер</p>
+              <h2 className={sectionHeading}>Baber сонгох</h2>
+              <p className={sectionHint}>Та үйлчлүүлэх бабераа сонгоно уу.</p>
             </div>
             {barberId && (
               <button
@@ -160,7 +323,7 @@ export function BookingSystem() {
                   setBarberId(null);
                   setTime(null);
                 }}
-                className="text-[10px] uppercase tracking-[0.22em] text-zinc-600 transition-colors hover:text-zinc-400"
+                className="text-[10px] uppercase tracking-[0.22em] text-achira-blue/55 dark:text-achira-cream/50"
               >
                 Солих
               </button>
@@ -171,77 +334,48 @@ export function BookingSystem() {
             <div className="flex snap-x snap-mandatory gap-3">
               {barbers.map((b) => {
                 const active = barberId === b.id;
-                const pick = () => {
-                  setBarberId(b.id);
-                  setTime(null);
-                };
                 return (
-                  <div
+                  <button
                     key={b.id}
-                    role="button"
-                    tabIndex={0}
-                    onClick={pick}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        pick();
-                      }
-                    }}
-                    className={`relative w-[72%] max-w-[16.5rem] shrink-0 snap-center cursor-pointer overflow-hidden rounded-[1.1rem] border bg-zinc-900/20 shadow-[0_14px_48px_rgba(0,0,0,0.45)] touch-manipulation transition-[transform,border-color,box-shadow,opacity] duration-200 ease-[cubic-bezier(0.33,1,0.68,1)] active:scale-[0.97] ${
+                    type="button"
+                    onClick={() => pickBarber(b.id)}
+                    className={`relative w-[72%] max-w-[16.5rem] shrink-0 snap-center overflow-hidden rounded-[1.1rem] border text-left shadow-[0_12px_40px_rgba(30,79,150,0.12)] transition-all active:scale-[0.98] dark:shadow-[0_12px_40px_rgba(0,0,0,0.35)] ${
                       active
-                        ? "border-2 border-white"
+                        ? "border-2 border-achira-blue dark:border-achira-cream"
                         : barberId
-                          ? "border-white/10 opacity-50"
-                          : "border-white/10"
+                          ? "border-achira-blue/10 opacity-55 dark:border-achira-cream/10"
+                          : "border-achira-blue/10 dark:border-achira-cream/10"
                     }`}
                   >
-                    {/* iOS: зураг/давхарга дээрх hit-test-ийг гаднах нэг элемент рүү татаж авах */}
-                    <div className="pointer-events-none relative aspect-[4/5]">
+                    <div className="relative aspect-[4/5]">
                       <Image
                         src={b.imageUrl}
                         alt={b.name}
                         fill
-                        className={`object-cover transition-transform duration-300 ease-out ${
-                          active ? "scale-105" : "scale-100"
-                        }`}
+                        className={`object-cover transition-transform duration-300 ${active ? "scale-105" : ""}`}
                         sizes="65vw"
                         priority={active}
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-achira-navy/85 via-achira-navy/20 to-transparent" />
                     </div>
-
-                    <div className="pointer-events-none absolute inset-x-0 bottom-0 p-2.5">
-                      <div className="flex items-end justify-between gap-2">
-                        <div className="min-w-0 flex-1 rounded-2xl border border-white/10 bg-white/[0.05] px-3 py-3 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] ring-1 ring-white/[0.06] backdrop-blur-xl backdrop-saturate-150">
-                          <div className="mb-1 flex items-center gap-2">
-                            <span
-                              className={`inline-flex items-center rounded-full border px-2 py-1 text-[9px] font-semibold uppercase tracking-[0.22em] ${
-                                active
-                                  ? "border-white/25 bg-white/10 text-white"
-                                  : "border-white/10 bg-black/20 text-zinc-400"
-                              }`}
-                            >
-                              {active ? "Сонгогдсон" : "Сонгох"}
-                            </span>
-                          </div>
-                          <p className="truncate font-[family-name:var(--font-display)] text-[14px] font-normal tracking-[0.04em] text-white">
-                            {b.name}
-                          </p>
-                          <p className="mt-1 truncate text-[11px] text-zinc-300/80">
-                            {b.title}
-                          </p>
-                        </div>
-                        {active && (
-                          <div
-                            className="flex h-10 w-10 items-center justify-center rounded-full border border-white/35 bg-white/10 text-white shadow-[0_10px_30px_rgba(0,0,0,0.45)] backdrop-blur-xl"
-                            aria-hidden
-                          >
-                            <CheckCircle2 className="h-5 w-5" strokeWidth={1.6} />
-                          </div>
-                        )}
+                    <div className="absolute inset-x-0 bottom-0 p-2.5">
+                      <div className="rounded-2xl border border-white/15 bg-black/25 px-3 py-2.5 backdrop-blur-md">
+                        <span
+                          className={`inline-flex rounded-full border px-2 py-0.5 text-[8px] font-semibold uppercase tracking-[0.2em] ${
+                            active
+                              ? "border-achira-cream/40 bg-achira-cream/15 text-achira-cream"
+                              : "border-white/20 text-white/70"
+                          }`}
+                        >
+                          {active ? "Сонгогдсон" : "Сонгох"}
+                        </span>
+                        <p className="mt-1.5 truncate font-[family-name:var(--font-display)] text-sm text-white">
+                          {b.name}
+                        </p>
+                        <p className="truncate text-[11px] text-white/75">{b.title}</p>
                       </div>
                     </div>
-                  </div>
+                  </button>
                 );
               })}
             </div>
@@ -250,22 +384,13 @@ export function BookingSystem() {
 
         <section
           ref={daySectionRef}
-          className={`transition-opacity ${barberId ? "opacity-100" : "opacity-50"}`}
+          className={`scroll-mt-24 transition-opacity ${barberId ? "opacity-100" : "pointer-events-none opacity-40"}`}
         >
-          <div className="mb-3 flex items-end justify-between px-0.5">
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.32em] text-zinc-600">
-                2. Өдөр
-              </p>
-              <h2 className="mt-1 font-[family-name:var(--font-display)] text-[18px] font-normal tracking-[0.08em] text-white">
-                Өдөр сонгох
-              </h2>
-              <p className="mt-2 text-[12px] leading-relaxed text-zinc-500">
-                Долоо хоногийн өдрөөс сонгоно уу.
-              </p>
-            </div>
+          <div className="mb-3 px-0.5">
+            <p className={sectionTitle}>2. Өдөр</p>
+            <h2 className={sectionHeading}>Өдөр сонгох</h2>
+            <p className={sectionHint}>Долоо хоногийн өдрөөс сонгоно уу.</p>
           </div>
-
           <div className="overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <div className="flex snap-x snap-mandatory gap-2">
               {dayOptions.map((d) => {
@@ -275,25 +400,20 @@ export function BookingSystem() {
                     key={d.iso}
                     type="button"
                     disabled={!barberId}
-                    onClick={() => {
-                      setDate(d.iso);
-                      setTime(null);
-                    }}
-                    className={`shrink-0 snap-start rounded-2xl border px-3 py-2 text-left transition-[transform,colors,border-color] duration-200 active:scale-[0.98] ${
+                    onClick={() => pickDate(d.iso)}
+                    className={`shrink-0 snap-start rounded-2xl border px-3 py-2 text-left transition-all active:scale-[0.98] ${
                       active
-                        ? "border-white/35 bg-white/[0.08] text-white"
-                        : "border-white/10 bg-zinc-900/20 text-zinc-200"
-                    } ${!barberId ? "cursor-not-allowed opacity-60" : ""}`}
+                        ? "border-achira-blue bg-achira-blue text-achira-cream dark:border-achira-cream dark:bg-achira-cream dark:text-achira-blue-dark"
+                        : "border-achira-blue/12 bg-white/70 text-achira-blue-dark dark:border-achira-cream/12 dark:bg-achira-navy/50 dark:text-achira-cream"
+                    }`}
                   >
-                    <p className="text-[9px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+                    <p className="text-[9px] font-medium uppercase tracking-[0.2em] opacity-70">
                       {d.wd}
                     </p>
-                    <p className="mt-0.5 font-[family-name:var(--font-display)] text-[14px] tracking-wide text-zinc-100">
+                    <p className="mt-0.5 font-[family-name:var(--font-display)] text-sm">
                       {d.dd}
                     </p>
-                    <p className="text-[9px] tabular-nums tracking-[0.18em] text-zinc-500">
-                      {d.mm}
-                    </p>
+                    <p className="text-[9px] tabular-nums opacity-70">{d.mm}</p>
                   </button>
                 );
               })}
@@ -301,89 +421,94 @@ export function BookingSystem() {
           </div>
         </section>
 
-        <section className={`transition-opacity ${barberId ? "opacity-100" : "opacity-50"}`}>
-          <div className="mb-3 flex items-end justify-between px-0.5">
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.32em] text-zinc-600">
-                3. Цаг
-              </p>
-              <h2 className="mt-1 font-[family-name:var(--font-display)] text-[18px] font-normal tracking-[0.08em] text-white">
-                Цаг сонгох
-              </h2>
-              <p className="mt-2 text-[12px] leading-relaxed text-zinc-500">
-                {OPEN_HOUR}:00 — {CLOSE_HOUR}:00, 1 цагийн зайтай.
-              </p>
-            </div>
+        <section
+          ref={timeSectionRef}
+          className={`scroll-mt-24 transition-opacity ${barberId ? "opacity-100" : "pointer-events-none opacity-40"}`}
+        >
+          <div className="mb-3 px-0.5">
+            <p className={sectionTitle}>3. Цаг</p>
+            <h2 className={sectionHeading}>Цаг сонгох</h2>
+            <p className={sectionHint}>
+              {OPEN_HOUR}:00 — {CLOSE_HOUR}:00, 1 цагийн зайтай.
+            </p>
           </div>
-
-          <div className="rounded-2xl border border-white/10 bg-zinc-900/20 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-xl">
-            <div className="grid grid-cols-3 gap-2">
-              {slots.map((t) => {
-                const booked = Boolean(barberId && isBooked(barberId, date, t));
-                const disabled = !barberId || booked;
-                const active = time === t;
-                return (
-                  <button
-                    key={t}
-                    type="button"
-                    disabled={disabled}
-                    onClick={() => setTime(t)}
-                    className={`rounded-xl border py-2.5 text-[12px] font-medium transition-[transform,colors,border-color] duration-200 active:scale-[0.98] ${
-                      booked
-                        ? "cursor-not-allowed border-transparent bg-white/[0.04] text-zinc-600 line-through"
-                        : active
-                          ? "border-white/40 bg-white/[0.10] text-white"
-                          : "border-white/10 bg-black/10 text-zinc-200 hover:border-white/20"
-                    }`}
-                    title={booked ? "Дүүрсэн" : t}
-                  >
-                    {t}
-                  </button>
-                );
-              })}
-            </div>
+          <div className="rounded-2xl border border-achira-blue/10 bg-white/60 p-3 dark:border-achira-cream/10 dark:bg-achira-navy/40">
+            {loadingSlots ? (
+              <p className="py-6 text-center text-xs text-achira-blue/55 dark:text-achira-cream/50">
+                Цаг шалгаж байна...
+              </p>
+            ) : (
+              <div className="grid grid-cols-3 gap-2">
+                {slots.map((t) => {
+                  const unavailable = isSlotUnavailable(t);
+                  const active = time === t;
+                  return (
+                    <button
+                      key={t}
+                      type="button"
+                      disabled={!barberId || unavailable}
+                      onClick={() => pickTime(t)}
+                      className={`rounded-xl border py-2.5 text-[12px] font-medium transition-all active:scale-[0.98] ${
+                        unavailable
+                          ? "cursor-not-allowed border-transparent bg-achira-blue/5 text-achira-blue/30 line-through dark:bg-achira-cream/5 dark:text-achira-cream/30"
+                          : active
+                            ? "border-achira-blue bg-achira-blue text-achira-cream dark:border-achira-cream dark:bg-achira-cream dark:text-achira-blue-dark"
+                            : "border-achira-blue/12 bg-achira-cream/50 text-achira-blue-dark dark:border-achira-cream/12 dark:bg-achira-navy/50 dark:text-achira-cream"
+                      }`}
+                    >
+                      {t}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </section>
 
         {barberId && time && (
-          <section className="pt-1">
-            <div className="rounded-2xl border border-white/10 bg-zinc-900/20 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-xl">
-              <p className="text-[11px] leading-relaxed text-zinc-500">
+          <section ref={formSectionRef} className="scroll-mt-24 pt-1">
+            <div className="rounded-2xl border border-achira-blue/10 bg-achira-paper/60 p-4 dark:border-achira-cream/10 dark:bg-achira-blue/10">
+              <p className="text-[11px] text-achira-blue/60 dark:text-achira-cream/55">
                 Баталгаажуулахын тулд мэдээллээ үлдээнэ үү.
               </p>
-
               <form onSubmit={handleConfirm} className="mt-4 space-y-3">
                 <div>
-                  <label className="text-[9px] font-medium uppercase tracking-[0.22em] text-zinc-600">
+                  <label className="text-[9px] font-medium uppercase tracking-[0.22em] text-achira-blue/55 dark:text-achira-cream/50">
                     Нэр
                   </label>
                   <input
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="mt-1 w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-base text-white outline-none backdrop-blur-md placeholder:text-zinc-600 focus:border-white/20"
+                    className="mt-1 w-full rounded-2xl border border-achira-blue/12 bg-white/90 px-4 py-3 text-base text-achira-ink outline-none focus:border-achira-blue/30 dark:border-achira-cream/12 dark:bg-achira-navy/60 dark:text-achira-cream"
                     placeholder="Таны нэр"
                   />
                 </div>
                 <div>
-                  <label className="text-[9px] font-medium uppercase tracking-[0.22em] text-zinc-600">
+                  <label className="text-[9px] font-medium uppercase tracking-[0.22em] text-achira-blue/55 dark:text-achira-cream/50">
                     Утас
                   </label>
                   <input
                     required
                     type="tel"
-                    inputMode="numeric"
+                    inputMode="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="mt-1 w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-base text-white outline-none backdrop-blur-md placeholder:text-zinc-600 focus:border-white/20"
+                    className="mt-1 w-full rounded-2xl border border-achira-blue/12 bg-white/90 px-4 py-3 text-base text-achira-ink outline-none focus:border-achira-blue/30 dark:border-achira-cream/12 dark:bg-achira-navy/60 dark:text-achira-cream"
                     placeholder="99112233"
                   />
                 </div>
+                {submitError && (
+                  <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:border-rose-900/40 dark:bg-rose-950/30 dark:text-rose-300">
+                    {submitError}
+                  </p>
+                )}
                 <button
                   type="submit"
-                  className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-white/25 bg-gradient-to-b from-zinc-50 via-white to-zinc-100 py-3.5 text-[10px] font-semibold uppercase tracking-[0.32em] text-zinc-950 shadow-[0_0_0_1px_rgba(255,255,255,0.2),0_8px_36px_rgba(255,255,255,0.14),inset_0_1px_0_rgba(255,255,255,0.65)] transition-[transform,filter,box-shadow] duration-300 ease-out active:scale-[0.98] active:from-zinc-200 active:via-zinc-100 active:to-zinc-200"
+                  disabled={submitting}
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-achira-blue py-3.5 text-[10px] font-semibold uppercase tracking-[0.28em] text-achira-cream active:scale-[0.98] disabled:opacity-60 dark:bg-achira-cream dark:text-achira-blue-dark"
                 >
-                  Баталгаажуулах
+                  {submitting ? "Илгээж байна..." : "Баталгаажуулах"}
                   <ChevronRight className="h-4 w-4" strokeWidth={1.6} />
                 </button>
               </form>
@@ -392,164 +517,271 @@ export function BookingSystem() {
         )}
       </div>
 
-      {/* Mobile continue bar (replaces the global CTA on booking) */}
-      <div className="pointer-events-none fixed inset-x-0 z-40 md:hidden" style={{ bottom: "calc(env(safe-area-inset-bottom) + 5.25rem)" }}>
-        <div
-          className="pointer-events-none absolute inset-x-0 -top-16 h-20 bg-gradient-to-t from-black/40 via-black/15 to-transparent"
-          aria-hidden
-        />
-        <div className="pointer-events-auto px-4">
-          <button
-            type="button"
-            disabled={!barberId}
-            onClick={() => daySectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
-            className={`w-full rounded-2xl border py-3.5 text-[10px] font-semibold uppercase tracking-[0.32em] shadow-[0_12px_40px_rgba(0,0,0,0.55)] transition-[transform,background-color,border-color,color,box-shadow] duration-300 active:scale-[0.98] ${
-              barberId
-                ? "border-white/25 bg-gradient-to-b from-zinc-50 via-white to-zinc-100 text-zinc-950 shadow-[0_0_0_1px_rgba(255,255,255,0.2),0_8px_36px_rgba(255,255,255,0.14),inset_0_1px_0_rgba(255,255,255,0.65)]"
-                : "cursor-not-allowed border-white/10 bg-white/[0.04] text-zinc-600"
-            }`}
-          >
-            Өдөр сонгох
-          </button>
-        </div>
-      </div>
-
-      {/* Desktop layout (existing) */}
-      <div className="hidden md:grid md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] md:gap-10">
-        <div>
-          <h2 className="font-[family-name:var(--font-display)] text-2xl text-white sm:text-3xl">
-            Baber сонгох
-          </h2>
-          <p className="mt-2 text-sm text-zinc-500">
-            Зураг, нэр, зэргийг үзэж сонгоно уу.
-          </p>
-          <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-            {barbers.map((b) => {
-              const active = barberId === b.id;
-              return (
-                <li key={b.id}>
+      {/* Desktop */}
+      <div className="hidden md:block">
+        <div className="grid gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)] lg:gap-12 xl:gap-16">
+          {/* Left — barber + date */}
+          <div className="space-y-10">
+            <section>
+              <div className="mb-5 flex items-end justify-between">
+                <div>
+                  <p className={sectionTitle}>1. Бабер</p>
+                  <h2 className="mt-1 font-[family-name:var(--font-display)] text-2xl tracking-[0.06em] text-achira-blue-dark dark:text-achira-cream lg:text-3xl">
+                    Baber сонгох
+                  </h2>
+                  <p className="mt-2 text-sm text-achira-blue/60 dark:text-achira-cream/55">
+                    Та үйлчлүүлэх бабераа сонгоно уу.
+                  </p>
+                </div>
+                {barberId && (
                   <button
                     type="button"
                     onClick={() => {
-                      setBarberId(b.id);
+                      setBarberId(null);
                       setTime(null);
                     }}
-                    className={`flex w-full gap-4 rounded-2xl border p-4 text-left transition-colors ${
-                      active
-                        ? "border-white bg-zinc-900"
-                        : "border-zinc-800 bg-zinc-950/50 hover:border-zinc-600"
-                    }`}
+                    className="rounded-full border border-achira-blue/12 px-4 py-2 text-[10px] font-medium uppercase tracking-[0.2em] text-achira-blue/60 transition-colors hover:border-achira-blue/25 hover:text-achira-blue-dark dark:border-achira-cream/12 dark:text-achira-cream/55 dark:hover:border-achira-cream/25 dark:hover:text-achira-cream"
                   >
-                    <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-zinc-800">
-                      <Image
-                        src={b.imageUrl}
-                        alt={b.name}
-                        fill
-                        className="object-cover"
-                        sizes="80px"
-                      />
-                    </div>
-                    <div className="flex min-w-0 flex-1 flex-col justify-center">
-                      <span className="truncate font-medium text-white">
-                        {b.name}
-                      </span>
-                      <span className="text-sm text-zinc-500">{b.title}</span>
-                    </div>
+                    Солих
                   </button>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
+                )}
+              </div>
 
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-950/40 p-6 sm:p-8">
-          <label className="block text-xs font-medium uppercase tracking-widest text-zinc-500">
-            Өдөр
-          </label>
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => {
-              setDate(e.target.value);
-              setTime(null);
-            }}
-            className="mt-2 w-full rounded-xl border border-zinc-800 bg-black px-4 py-3 text-sm text-white outline-none focus:border-zinc-500"
-          />
+              <div className="grid gap-4 sm:grid-cols-2">
+                {barbers.map((b) => {
+                  const active = barberId === b.id;
+                  return (
+                    <button
+                      key={b.id}
+                      type="button"
+                      onClick={() => pickBarber(b.id)}
+                      className={`group relative overflow-hidden rounded-2xl border text-left shadow-[0_12px_40px_rgba(30,79,150,0.08)] transition-all hover:shadow-[0_16px_48px_rgba(30,79,150,0.14)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.3)] ${
+                        active
+                          ? "border-2 border-achira-blue ring-4 ring-achira-blue/10 dark:border-achira-cream dark:ring-achira-cream/10"
+                          : "border-achira-blue/10 hover:border-achira-blue/25 dark:border-achira-cream/10 dark:hover:border-achira-cream/25"
+                      }`}
+                    >
+                      <div className="relative aspect-[5/4] overflow-hidden">
+                        <Image
+                          src={b.imageUrl}
+                          alt={b.name}
+                          fill
+                          className={`object-cover transition-transform duration-500 ${active ? "scale-105" : "group-hover:scale-[1.03]"}`}
+                          sizes="(max-width: 1024px) 50vw, 33vw"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-achira-navy/90 via-achira-navy/25 to-transparent" />
+                        {active && (
+                          <div className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-achira-cream text-achira-blue-dark shadow-lg">
+                            <CheckCircle2 className="h-4 w-4" strokeWidth={2} />
+                          </div>
+                        )}
+                      </div>
+                      <div className="absolute inset-x-0 bottom-0 p-4">
+                        <span
+                          className={`inline-flex rounded-full border px-2.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.2em] ${
+                            active
+                              ? "border-achira-cream/40 bg-achira-cream/15 text-achira-cream"
+                              : "border-white/20 text-white/70"
+                          }`}
+                        >
+                          {active ? "Сонгогдсон" : "Сонгох"}
+                        </span>
+                        <p className="mt-2 font-[family-name:var(--font-display)] text-xl text-white">
+                          {b.name}
+                        </p>
+                        <p className="text-sm text-white/75">{b.title}</p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
 
-          <h3 className="mt-10 text-xs font-medium uppercase tracking-widest text-zinc-500">
-            Боломжит цаг ({OPEN_HOUR}:00 — {CLOSE_HOUR}:00)
-          </h3>
-          <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-4">
-            {slots.map((t) => {
-              const booked = Boolean(barberId && isBooked(barberId, date, t));
-              const disabled = !barberId || booked;
-              const active = time === t;
-              return (
-                <button
-                  key={t}
-                  type="button"
-                  disabled={disabled}
-                  title={booked ? "Дүүрсэн" : t}
-                  onClick={() => setTime(t)}
-                  className={`rounded-xl border py-2.5 text-sm transition-colors ${
-                    booked
-                      ? "cursor-not-allowed border-transparent bg-zinc-900/40 text-zinc-600 line-through"
-                      : active
-                        ? "border-white bg-white text-black"
-                        : "border-zinc-800 text-zinc-200 hover:border-zinc-500"
-                  }`}
-                >
-                  {t}
-                </button>
-              );
-            })}
-          </div>
-          {!barberId && (
-            <p className="mt-4 text-xs text-zinc-600">Эхлээд baber сонгоно уу.</p>
-          )}
-
-          {barberId && time && (
-            <form
-              onSubmit={handleConfirm}
-              className="mt-10 space-y-4 border-t border-zinc-800 pt-8"
+            <section
+              className={`transition-opacity ${barberId ? "opacity-100" : "pointer-events-none opacity-40"}`}
             >
-              <p className="text-sm text-zinc-400">
-                Захиалга баталгаажуулахын тулд холбоо барих мэдээллээ үлдээнэ үү.
-              </p>
-              <div>
-                <label className="text-xs uppercase tracking-wider text-zinc-500">
-                  Нэр
-                </label>
-                <input
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-zinc-800 bg-black px-4 py-3 text-sm text-white outline-none focus:border-zinc-500"
-                  placeholder="Таны нэр"
-                />
+              <div className="mb-5">
+                <p className={sectionTitle}>2. Өдөр</p>
+                <h2 className="mt-1 font-[family-name:var(--font-display)] text-2xl tracking-[0.06em] text-achira-blue-dark dark:text-achira-cream">
+                  Өдөр сонгох
+                </h2>
+                <p className="mt-2 text-sm text-achira-blue/60 dark:text-achira-cream/55">
+                  Дараагийн 10 өдрөөс сонгоно уу.
+                </p>
               </div>
-              <div>
-                <label className="text-xs uppercase tracking-wider text-zinc-500">
-                  Утас
-                </label>
-                <input
-                  required
-                  type="tel"
-                  inputMode="numeric"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-zinc-800 bg-black px-4 py-3 text-sm text-white outline-none focus:border-zinc-500"
-                  placeholder="99112233"
-                />
+              <div className="flex flex-wrap gap-2.5">
+                {dayOptions.map((d) => {
+                  const active = d.iso === date;
+                  return (
+                    <button
+                      key={d.iso}
+                      type="button"
+                      disabled={!barberId}
+                      onClick={() => pickDate(d.iso)}
+                      className={`min-w-[4.5rem] rounded-2xl border px-4 py-3 text-center transition-all hover:scale-[1.02] ${
+                        active
+                          ? "border-achira-blue bg-achira-blue text-achira-cream shadow-[0_8px_24px_rgba(30,79,150,0.25)] dark:border-achira-cream dark:bg-achira-cream dark:text-achira-blue-dark"
+                          : "border-achira-blue/12 bg-white/70 text-achira-blue-dark hover:border-achira-blue/25 dark:border-achira-cream/12 dark:bg-achira-navy/50 dark:text-achira-cream dark:hover:border-achira-cream/25"
+                      }`}
+                    >
+                      <p className="text-[10px] font-medium uppercase tracking-[0.2em] opacity-70">
+                        {d.wd}
+                      </p>
+                      <p className="mt-1 font-[family-name:var(--font-display)] text-lg">
+                        {d.dd}
+                      </p>
+                      <p className="text-[10px] tabular-nums opacity-70">{d.mm}</p>
+                    </button>
+                  );
+                })}
               </div>
-              <button
-                type="submit"
-                className="w-full rounded-full bg-white py-3.5 text-sm font-semibold uppercase tracking-widest text-black transition-transform hover:scale-[1.01] active:scale-[0.99]"
-              >
-                Баталгаажуулах
-              </button>
-            </form>
-          )}
+            </section>
+          </div>
+
+          {/* Right — sticky booking panel */}
+          <aside className="lg:sticky lg:top-24 lg:self-start">
+            <div className="overflow-hidden rounded-3xl border border-achira-blue/12 bg-achira-paper/70 shadow-[0_20px_60px_rgba(30,79,150,0.1)] backdrop-blur-sm dark:border-achira-cream/10 dark:bg-achira-blue/10 dark:shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
+              {selectedBarber ? (
+                <div className="flex items-center gap-3 border-b border-achira-blue/10 bg-achira-blue/5 px-5 py-4 dark:border-achira-cream/10 dark:bg-achira-cream/5">
+                  <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl">
+                    <Image
+                      src={selectedBarber.imageUrl}
+                      alt={selectedBarber.name}
+                      fill
+                      className="object-cover"
+                      sizes="48px"
+                    />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate font-medium text-achira-blue-dark dark:text-achira-cream">
+                      {selectedBarber.name}
+                    </p>
+                    <p className="truncate text-xs text-achira-blue/60 dark:text-achira-cream/55">
+                      {selectedBarber.title}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-3 border-b border-achira-blue/10 px-5 py-4 dark:border-achira-cream/10">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-achira-blue/8 text-achira-blue/40 dark:bg-achira-cream/8 dark:text-achira-cream/40">
+                    <User className="h-5 w-5" strokeWidth={1.5} />
+                  </div>
+                  <p className="text-sm text-achira-blue/55 dark:text-achira-cream/50">
+                    Эхлээд бабер сонгоно уу
+                  </p>
+                </div>
+              )}
+
+              <div className="p-5 sm:p-6">
+                <div className="mb-1 flex items-center gap-2">
+                  <Clock className="h-3.5 w-3.5 text-achira-blue/50 dark:text-achira-cream/45" strokeWidth={1.5} />
+                  <p className="text-[10px] font-medium uppercase tracking-[0.28em] text-achira-blue/55 dark:text-achira-cream/50">
+                    3. Цаг сонгох
+                  </p>
+                </div>
+                <p className="text-xs text-achira-blue/55 dark:text-achira-cream/50">
+                  {OPEN_HOUR}:00 — {CLOSE_HOUR}:00
+                </p>
+
+                <div className="mt-4 rounded-2xl border border-achira-blue/8 bg-white/50 p-3 dark:border-achira-cream/8 dark:bg-achira-navy/40">
+                  {!barberId ? (
+                    <p className="py-8 text-center text-sm text-achira-blue/45 dark:text-achira-cream/40">
+                      Бабер сонгосны дараа цагууд харагдана
+                    </p>
+                  ) : loadingSlots ? (
+                    <p className="py-8 text-center text-sm text-achira-blue/55 dark:text-achira-cream/50">
+                      Цаг шалгаж байна...
+                    </p>
+                  ) : (
+                    <div className="grid grid-cols-3 gap-2">
+                      {slots.map((t) => {
+                        const unavailable = isSlotUnavailable(t);
+                        const active = time === t;
+                        return (
+                          <button
+                            key={t}
+                            type="button"
+                            disabled={unavailable}
+                            onClick={() => pickTime(t)}
+                            className={`rounded-xl border py-2.5 text-sm font-medium transition-all hover:scale-[1.02] ${
+                              unavailable
+                                ? "cursor-not-allowed border-transparent bg-achira-blue/5 text-achira-blue/30 line-through dark:bg-achira-cream/5 dark:text-achira-cream/30"
+                                : active
+                                  ? "border-achira-blue bg-achira-blue text-achira-cream shadow-[0_4px_16px_rgba(30,79,150,0.3)] dark:border-achira-cream dark:bg-achira-cream dark:text-achira-blue-dark"
+                                  : "border-achira-blue/12 bg-achira-cream/60 text-achira-blue-dark hover:border-achira-blue/25 dark:border-achira-cream/12 dark:bg-achira-navy/60 dark:text-achira-cream dark:hover:border-achira-cream/25"
+                            }`}
+                          >
+                            {t}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {barberId && time && (
+                  <>
+                    <div className="mt-5 rounded-2xl border border-achira-blue/10 bg-achira-blue/5 px-4 py-3 dark:border-achira-cream/10 dark:bg-achira-cream/5">
+                      <p className="text-[9px] font-medium uppercase tracking-[0.22em] text-achira-blue/50 dark:text-achira-cream/45">
+                        Захиалгын дэлгэрэнгүй
+                      </p>
+                      <div className="mt-2 space-y-1 text-sm text-achira-blue-dark dark:text-achira-cream">
+                        <p>
+                          <span className="text-achira-blue/55 dark:text-achira-cream/50">Өдөр:</span>{" "}
+                          {date}
+                        </p>
+                        <p>
+                          <span className="text-achira-blue/55 dark:text-achira-cream/50">Цаг:</span>{" "}
+                          {time}
+                        </p>
+                      </div>
+                    </div>
+
+                    <form onSubmit={handleConfirm} className="mt-5 space-y-4">
+                      <div>
+                        <label className="text-[10px] font-medium uppercase tracking-[0.22em] text-achira-blue/55 dark:text-achira-cream/50">
+                          Нэр
+                        </label>
+                        <input
+                          required
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          className="mt-1.5 w-full rounded-xl border border-achira-blue/12 bg-white/90 px-4 py-3 text-sm text-achira-ink outline-none transition-colors focus:border-achira-blue/30 focus:ring-2 focus:ring-achira-blue/10 dark:border-achira-cream/12 dark:bg-achira-navy/60 dark:text-achira-cream dark:focus:border-achira-cream/30 dark:focus:ring-achira-cream/10"
+                          placeholder="Таны нэр"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-medium uppercase tracking-[0.22em] text-achira-blue/55 dark:text-achira-cream/50">
+                          Утас
+                        </label>
+                        <input
+                          required
+                          type="tel"
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value)}
+                          className="mt-1.5 w-full rounded-xl border border-achira-blue/12 bg-white/90 px-4 py-3 text-sm text-achira-ink outline-none transition-colors focus:border-achira-blue/30 focus:ring-2 focus:ring-achira-blue/10 dark:border-achira-cream/12 dark:bg-achira-navy/60 dark:text-achira-cream dark:focus:border-achira-cream/30 dark:focus:ring-achira-cream/10"
+                          placeholder="99112233"
+                        />
+                      </div>
+                      {submitError && (
+                        <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:border-rose-900/40 dark:bg-rose-950/30 dark:text-rose-300">
+                          {submitError}
+                        </p>
+                      )}
+                      <button
+                        type="submit"
+                        disabled={submitting}
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-achira-blue py-4 text-xs font-semibold uppercase tracking-[0.28em] text-achira-cream shadow-[0_8px_32px_rgba(30,79,150,0.25)] transition-all hover:bg-achira-blue-dark hover:scale-[1.01] disabled:opacity-60 dark:bg-achira-cream dark:text-achira-blue-dark dark:shadow-[0_8px_32px_rgba(245,240,232,0.15)] dark:hover:bg-achira-paper"
+                      >
+                        {submitting ? "Илгээж байна..." : "Баталгаажуулах"}
+                        <ChevronRight className="h-4 w-4" strokeWidth={1.6} />
+                      </button>
+                    </form>
+                  </>
+                )}
+              </div>
+            </div>
+          </aside>
         </div>
       </div>
     </div>

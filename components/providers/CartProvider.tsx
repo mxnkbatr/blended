@@ -4,6 +4,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -24,12 +25,46 @@ type CartContextValue = {
   clear: () => void;
   totalMnt: number;
   count: number;
+  hydrated: boolean;
 };
 
 const CartContext = createContext<CartContextValue | null>(null);
+const STORAGE_KEY = "achira:cart:v1";
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [lines, setLines] = useState<CartLine[]>([]);
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw) as unknown;
+        if (Array.isArray(parsed)) {
+          setLines(
+            parsed
+              .filter(Boolean)
+              .map((x: Record<string, unknown>) => ({
+                slug: String(x.slug ?? ""),
+                name: String(x.name ?? ""),
+                priceMnt: Number(x.priceMnt ?? 0),
+                imageUrl: String(x.imageUrl ?? ""),
+                qty: Math.max(1, Number(x.qty ?? 1)),
+              }))
+              .filter((l) => l.slug && l.name),
+          );
+        }
+      }
+    } catch {
+      // ignore corrupt cart
+    }
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(lines));
+  }, [lines, hydrated]);
 
   const addItem = useCallback(
     (input: Omit<CartLine, "qty"> & { qty?: number }) => {
@@ -80,8 +115,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       clear,
       totalMnt,
       count,
+      hydrated,
     };
-  }, [lines, addItem, setQty, removeLine, clear]);
+  }, [lines, addItem, setQty, removeLine, clear, hydrated]);
 
   return (
     <CartContext.Provider value={value}>{children}</CartContext.Provider>

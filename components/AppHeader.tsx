@@ -23,6 +23,14 @@ const layoutSpring = {
 /** Зөвхөн гар утас — desktop дээр `SiteHeader` ашиглана */
 export function AppHeader() {
   const pathname = usePathname();
+  if (
+    pathname === "/login" ||
+    pathname === "/register" ||
+    pathname.startsWith("/login/") ||
+    pathname.startsWith("/register/")
+  ) {
+    return null;
+  }
   const scrolled = useMobileHomeScrolled();
   const isHome = pathname === "/";
   const compact = isHome && scrolled;
@@ -37,8 +45,8 @@ export function AppHeader() {
     <header
       className={`sticky top-0 z-50 border-b transition-[height,background-color,backdrop-filter,box-shadow,border-color] duration-300 md:hidden ${
         compact
-          ? "border-black/10 bg-white/70 shadow-[0_12px_40px_rgba(0,0,0,0.08)] backdrop-blur-md dark:border-white/[0.08] dark:bg-black/50 dark:shadow-[0_12px_40px_rgba(0,0,0,0.35)]"
-          : "border-black/10 bg-white/55 backdrop-blur-sm dark:border-white/[0.05] dark:bg-black/35"
+          ? "border-achira-blue/10 bg-achira-cream/85 shadow-[0_12px_40px_rgba(30,79,150,0.10)] backdrop-blur-md dark:border-achira-cream/8 dark:bg-achira-navy/80 dark:shadow-[0_12px_40px_rgba(0,0,0,0.35)]"
+          : "border-achira-blue/10 bg-achira-cream/70 backdrop-blur-sm dark:border-achira-cream/6 dark:bg-achira-navy/60"
       }`}
     >
       <div
@@ -49,16 +57,16 @@ export function AppHeader() {
         <div className="flex shrink-0 items-center">
           <Link
             href="/"
-            className="flex shrink-0 items-center gap-1.5 text-zinc-950 transition-opacity hover:opacity-90 dark:text-white"
+            className="flex shrink-0 items-center gap-1.5 text-achira-blue transition-opacity hover:opacity-90 dark:text-achira-cream"
           >
             <div
               className={`relative overflow-hidden rounded-md transition-all duration-300 ${
-                compact ? "h-5 w-9" : "h-6 w-10"
+                compact ? "h-6 w-6" : "h-7 w-7"
               }`}
             >
               <Image
-                src="/logo.png"
-                alt="Blended"
+                src="/achira-logo.png"
+                alt="Achira Artist"
                 fill
                 className="object-contain"
                 sizes="44px"
@@ -68,16 +76,16 @@ export function AppHeader() {
             {isHome ? (
               compact ? (
                 <motion.span
-                  layoutId="mobile-blended-title"
-                  className="font-[family-name:var(--font-display)] text-[10px] font-normal tracking-[0.32em] text-zinc-950/90 dark:text-white/90"
+                  layoutId="mobile-achira-title"
+                  className="font-[family-name:var(--font-display)] text-[9px] font-medium tracking-[0.28em] text-achira-blue/90 dark:text-achira-cream/90"
                   transition={layoutSpring}
                 >
-                  BLENDED
+                  ACHIRA
                 </motion.span>
               ) : null
             ) : (
-              <span className="font-[family-name:var(--font-display)] text-[9px] font-normal tracking-[0.26em] text-zinc-950/90 dark:text-white/90">
-                BLENDED
+              <span className="font-[family-name:var(--font-display)] text-[8px] font-medium tracking-[0.24em] text-achira-blue/90 dark:text-achira-cream/90">
+                ACHIRA
               </span>
             )}
           </Link>
