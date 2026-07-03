@@ -30,5 +30,13 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules", "blended-native", "android", "ios"]
+  "exclude": [
+    "node_modules",
+    "blended-native",
+    "android",
+    "ios",
+    "scripts",
+    "prisma",
+    "lib/prisma.ts"
+  ]
 }
