@@ -20,6 +20,7 @@
     "db:rls": "tsx scripts/apply-rls.ts",
     "db:orders": "tsx scripts/apply-orders.ts",
     "db:admin": "tsx scripts/apply-admin.ts",
+    "db:qpay": "tsx scripts/apply-qpay.ts",
     "cap:ios": "cap open ios",
     "mobile:ios": "npm run mobile && cap open ios"
   },
