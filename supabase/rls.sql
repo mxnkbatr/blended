@@ -13,7 +13,7 @@ create policy "barbers_public_read"
 drop policy if exists "products_public_read" on public.products;
 create policy "products_public_read"
   on public.products for select
-  using (in_stock = true);
+  using (in_stock = true or always_visible = true);
 
 drop policy if exists "appointments_public_insert" on public.appointments;
 create policy "appointments_public_insert"

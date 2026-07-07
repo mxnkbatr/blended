@@ -9,6 +9,7 @@ datasource db {
 }
 
 enum AppointmentStatus {
+  AWAITING_PAYMENT
   PENDING
   CONFIRMED
   CANCELLED
@@ -45,6 +46,7 @@ model Barber {
   imageUrl  String?  @map("image_url")
   bio       String?
   active    Boolean  @default(true)
+  bookingPriceMnt Int @default(50000) @map("booking_price_mnt")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -80,8 +82,9 @@ model Product {
   description String
   priceMnt    Int      @map("price_mnt")
   imageUrl    String?  @map("image_url")
-  inStock     Boolean  @default(true) @map("in_stock")
-  createdAt   DateTime @default(now()) @map("created_at")
+  inStock       Boolean  @default(true) @map("in_stock")
+  alwaysVisible Boolean  @default(true) @map("always_visible")
+  createdAt     DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   orderItems OrderItem[]

@@ -12,6 +12,10 @@ import { MobileAppChrome } from "@/components/MobileAppChrome";
 import { SiteHeader } from "@/components/SiteHeader";
 import { AppSplash } from "@/components/AppSplash";
 import { CapacitorInit } from "@/components/CapacitorInit";
+import { CapacitorBackButton } from "@/components/CapacitorBackButton";
+import { KeyboardInsetSync } from "@/components/KeyboardInsetSync";
+import { ThemeCapacitorSync } from "@/components/ThemeCapacitorSync";
+import { PushNotificationsInit } from "@/components/PushNotificationsInit";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { AuthGate } from "@/components/AuthGate";
 import "./globals.css";
@@ -57,7 +61,11 @@ export default function RootLayout({
       >
         <ThemeProvider>
           <AuthProvider>
+            <PushNotificationsInit />
             <CapacitorInit />
+            <CapacitorBackButton />
+            <KeyboardInsetSync />
+            <ThemeCapacitorSync />
             <AppSplash />
             <LanguageProvider>
               <CartProvider>

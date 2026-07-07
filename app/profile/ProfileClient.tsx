@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   CalendarDays,
   ChevronRight,
+  LayoutDashboard,
   LogOut,
   Package,
   Settings,
@@ -150,6 +151,18 @@ export function ProfileClient() {
         )}
       </div>
 
+      {isAdmin && (
+        <Link
+          href="/admin"
+          onClick={() => void hapticLight()}
+          className="mt-4 flex w-full items-center justify-center gap-2.5 rounded-2xl border border-achira-burgundy/20 bg-gradient-to-r from-achira-burgundy/12 via-achira-blue/8 to-achira-blue/12 px-4 py-4 text-sm font-semibold text-achira-blue-dark shadow-[0_8px_28px_rgba(30,79,150,0.12)] transition-transform active:scale-[0.98] dark:border-achira-cream/15 dark:from-achira-cream/10 dark:via-achira-blue/20 dark:to-achira-navy/60 dark:text-achira-cream dark:shadow-[0_8px_28px_rgba(0,0,0,0.28)]"
+        >
+          <LayoutDashboard className="h-5 w-5 text-achira-burgundy dark:text-achira-cream" />
+          Админ самбар руу орох
+          <ChevronRight className="h-4 w-4 opacity-60" />
+        </Link>
+      )}
+
       <div className="mt-4 grid grid-cols-2 gap-3">
         <Link
           href="/checkout"
@@ -229,20 +242,6 @@ export function ProfileClient() {
       </section>
 
       <div className="mt-4 rounded-2xl border border-achira-blue/10 bg-achira-paper/40 p-2 dark:border-achira-cream/8 dark:bg-achira-blue/8">
-        {isAdmin && (
-          <Link
-            href="/admin"
-            className="flex items-center justify-between gap-3 rounded-xl px-3 py-3 active:scale-[0.99]"
-          >
-            <div className="flex items-center gap-3">
-              <Settings className="h-5 w-5 text-achira-burgundy dark:text-achira-cream/70" />
-              <span className="text-sm font-medium text-achira-blue-dark dark:text-achira-cream">
-                Admin самбар
-              </span>
-            </div>
-            <ChevronRight className="h-4 w-4 text-achira-blue/40" />
-          </Link>
-        )}
         <Link
           href="/settings"
           className="flex items-center justify-between gap-3 rounded-xl px-3 py-3 active:scale-[0.99]"

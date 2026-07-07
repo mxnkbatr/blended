@@ -1,9 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CalendarDays, Home, ShoppingBag, Store, User } from "lucide-react";
-import Link from "next/link";
 import { useCart } from "@/components/providers/CartProvider";
+import { hapticLight, hapticMedium, hapticSelection } from "@/lib/haptics";
 
 const tabs = [
   { href: "/", label: "Нүүр", Icon: Home },
@@ -43,6 +44,7 @@ export function BottomDock() {
               {count > 0 && (
                 <Link
                   href="/checkout"
+                  onClick={() => void hapticLight()}
                   className="flex flex-1 items-center justify-center gap-2 rounded-2xl border border-achira-burgundy/20 bg-achira-burgundy/90 py-3.5 text-[10px] font-semibold uppercase tracking-[0.24em] text-white shadow-[0_8px_32px_rgba(124,31,50,0.2)] active:scale-[0.97]"
                 >
                   <ShoppingBag className="h-4 w-4" />
@@ -51,6 +53,7 @@ export function BottomDock() {
               )}
               <Link
                 href="/booking"
+                onClick={() => void hapticMedium()}
                 className={`flex items-center justify-center rounded-2xl border border-achira-blue/15 bg-achira-blue py-3.5 text-[10px] font-semibold uppercase tracking-[0.32em] text-achira-cream shadow-[0_8px_32px_rgba(30,79,150,0.25)] transition-[transform,background-color] active:scale-[0.97] dark:border-achira-cream/20 dark:bg-achira-cream dark:text-achira-blue-dark ${
                   count > 0 ? "flex-1" : "w-full"
                 }`}
@@ -60,7 +63,7 @@ export function BottomDock() {
             </div>
           )}
           <nav
-            className="relative z-10 flex items-center justify-between gap-1 rounded-2xl border border-achira-blue/10 bg-achira-cream/85 px-1 py-1.5 shadow-[0_-8px_32px_rgba(30,79,150,0.08)] backdrop-blur-md dark:border-achira-cream/8 dark:bg-achira-navy/70 dark:shadow-[0_-8px_32px_rgba(0,0,0,0.25)]"
+            className="relative z-10 flex items-center justify-between gap-1 rounded-2xl border border-achira-gold/15 bg-achira-cream/88 px-1 py-1.5 shadow-[0_-10px_36px_rgba(21,58,112,0.10),0_1px_0_rgba(255,255,255,0.65)_inset] backdrop-blur-xl dark:border-achira-gold/10 dark:bg-achira-navy/78 dark:shadow-[0_-10px_40px_rgba(0,0,0,0.32)]"
             aria-label="Доод цэс"
           >
             {tabs.map(({ href, label, Icon }) => {
@@ -72,6 +75,9 @@ export function BottomDock() {
                 <Link
                   key={href}
                   href={href}
+                  onClick={() => {
+                    if (!active) void hapticSelection();
+                  }}
                   className={`flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-xl py-1.5 transition-colors active:scale-95 ${
                     active
                       ? "text-achira-blue dark:text-achira-cream"

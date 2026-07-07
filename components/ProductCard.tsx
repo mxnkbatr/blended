@@ -16,8 +16,10 @@ export function ProductCard({ product }: { product: Product }) {
   const { addItem } = useCart();
   const { has, toggle } = useWishlist();
   const liked = has(product.slug);
+  const inStock = product.inStock !== false;
+
   return (
-    <article className="rounded-3xl border border-achira-blue/10 bg-achira-paper/50 p-3 shadow-[0_16px_50px_rgba(30,79,150,0.08)] backdrop-blur-md dark:border-achira-cream/10 dark:bg-achira-blue/8 dark:shadow-[0_16px_50px_rgba(0,0,0,0.35)]">
+    <article className="premium-card p-3 transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_22px_70px_rgba(21,58,112,0.12)] dark:hover:shadow-[0_24px_80px_rgba(0,0,0,0.42)]">
       <div className="relative overflow-hidden rounded-2xl bg-zinc-100 dark:bg-zinc-900">
         <Link href={`/shop/${product.slug}`} className="block">
           <div className="relative aspect-square">
@@ -28,6 +30,11 @@ export function ProductCard({ product }: { product: Product }) {
               className="object-cover"
               sizes="(max-width:640px) 50vw, 25vw"
             />
+            {!inStock && (
+              <span className="absolute left-2 top-2 rounded-full bg-achira-navy/85 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-achira-cream backdrop-blur-sm dark:bg-black/75">
+                Дууссан
+              </span>
+            )}
           </div>
         </Link>
       </div>
@@ -57,7 +64,9 @@ export function ProductCard({ product }: { product: Product }) {
         </button>
         <button
           type="button"
+          disabled={!inStock}
           onClick={() => {
+            if (!inStock) return;
             void hapticLight();
             addItem({
               slug: product.slug,
@@ -66,10 +75,10 @@ export function ProductCard({ product }: { product: Product }) {
               imageUrl: product.imageUrl,
             });
           }}
-          className="flex h-10 flex-1 items-center justify-center gap-2 rounded-2xl bg-achira-blue px-3 text-[11px] font-semibold tracking-wide text-achira-cream transition-transform active:scale-[0.98] dark:bg-achira-cream dark:text-achira-blue-dark"
+          className="flex h-10 flex-1 items-center justify-center gap-2 rounded-2xl bg-achira-blue px-3 text-[11px] font-semibold tracking-wide text-achira-cream transition-transform active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45 dark:bg-achira-cream dark:text-achira-blue-dark"
         >
           <ShoppingBag className="h-4 w-4" strokeWidth={1.35} />
-          Сагслах
+          {inStock ? "Сагслах" : "Дууссан"}
         </button>
       </div>
 
@@ -77,7 +86,7 @@ export function ProductCard({ product }: { product: Product }) {
         <p className="line-clamp-1 text-[12px] font-bold text-achira-blue-dark dark:text-achira-cream">
           {product.name}
         </p>
-        <p className="mt-2 text-[13px] font-bold text-achira-blue tabular-nums dark:text-achira-cream">
+        <p className="mt-2 text-[13px] font-semibold tracking-wide text-achira-blue tabular-nums dark:text-achira-cream">
           {formatMnt(product.priceMnt)}
         </p>
       </Link>

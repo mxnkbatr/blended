@@ -22,6 +22,7 @@ function emptyProduct(): Partial<ProductRow> & {
     price_mnt: 0,
     image_url: "",
     in_stock: true,
+    always_visible: true,
   };
 }
 
@@ -161,6 +162,16 @@ export default function AdminProductsPage() {
             />
             Нөөцтэй
           </label>
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={form.always_visible ?? true}
+              onChange={(e) =>
+                setForm({ ...form, always_visible: e.target.checked })
+              }
+            />
+            Дэлгүүрт түр удахгүй (дууссан ч харагдана)
+          </label>
           <div className="flex gap-2">
             <button type="submit" disabled={saving} className="admin-btn-primary">
               {saving ? "Хадгалж..." : "Хадгалах"}
@@ -189,6 +200,7 @@ export default function AdminProductsPage() {
                   {new Intl.NumberFormat("mn-MN").format(row.price_mnt)} ₮ ·{" "}
                   {row.slug}
                   {!row.in_stock && " · Дууссан"}
+                  {row.always_visible && !row.in_stock && " · Дэлгүүрт"}
                 </p>
               </div>
               <div className="flex gap-2">

@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import { isQPayConfigured } from "@/lib/qpay/config";
+import { validateCartStock } from "@/lib/products/stock";
+import { incrementPromoUsage, validateShopPromo } from "@/lib/promo/server";
 import {
   createShopOrderServer,
+  finalizeOrderPayment,
   getOrderPaymentState,
-  markOrderPaidByQPayInvoice,
 } from "@/lib/qpay/orders";
 import {
   checkQPayInvoicePayment,
@@ -18,6 +20,7 @@ type CheckoutBody = {
   customerPhone?: string;
   paymentMethod?: "qpay" | "socialpay";
   userId?: string | null;
+  promoCode?: string;
 };
 
 export async function POST(req: Request) {
@@ -39,6 +42,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Сагс хоосон байна." }, { status: 400 });
     }
 
+    const stockCheck = await validateCartStock(lines);
+    if (!stockCheck.ok) {
+      return NextResponse.json({ error: stockCheck.error }, { status: 400 });
+    }
+
     const checkoutLines = lines.map((line) => ({
       slug: line.slug,
       name: line.name,
@@ -47,12 +55,31 @@ export async function POST(req: Request) {
       imageUrl: line.imageUrl,
     }));
 
-    const totalMnt = checkoutLines.reduce(
+    const subtotalMnt = checkoutLines.reduce(
       (sum, line) => sum + line.priceMnt * line.qty,
       0,
     );
 
-    if (totalMnt <= 0) {
+    let discountMnt = 0;
+    let totalMnt = subtotalMnt;
+    let promoId: string | null = null;
+    let promoCode: string | null = null;
+
+    if (body.promoCode?.trim()) {
+      const promoResult = await validateShopPromo(
+        body.promoCode,
+        checkoutLines,
+      );
+      if (!promoResult.ok) {
+        return NextResponse.json({ error: promoResult.error }, { status: 400 });
+      }
+      discountMnt = promoResult.discountMnt;
+      totalMnt = promoResult.totalMnt;
+      promoId = promoResult.promo.id;
+      promoCode = promoResult.promo.code;
+    }
+
+    if (totalMnt <= 0 && subtotalMnt <= 0) {
       return NextResponse.json({ error: "Буруу дүн." }, { status: 400 });
     }
 
@@ -81,15 +108,24 @@ export async function POST(req: Request) {
         userId: body.userId ?? null,
         qpayInvoiceId: invoice.invoice_id,
         qpaySenderInvoiceNo: senderInvoiceNo,
+        subtotalMnt,
+        discountMnt,
+        promoCode,
+        promoId,
       });
 
       if (!orderResult.ok) {
         return NextResponse.json({ error: orderResult.error }, { status: 500 });
       }
 
+      if (promoId) await incrementPromoUsage(promoId);
+
       return NextResponse.json({
         orderId: orderResult.orderId,
         paymentRef: senderInvoiceNo,
+        subtotalMnt,
+        discountMnt,
+        totalMnt,
         qpay: {
           invoiceId: invoice.invoice_id,
           qrText: invoice.qr_text ?? null,
@@ -106,15 +142,24 @@ export async function POST(req: Request) {
       customerPhone,
       paymentMethod,
       userId: body.userId ?? null,
+      subtotalMnt,
+      discountMnt,
+      promoCode,
+      promoId,
     });
 
     if (!orderResult.ok) {
       return NextResponse.json({ error: orderResult.error }, { status: 500 });
     }
 
+    if (promoId) await incrementPromoUsage(promoId);
+
     return NextResponse.json({
       orderId: orderResult.orderId,
       paymentRef: `ACHIRA-${orderResult.orderId.slice(0, 8).toUpperCase()}`,
+      subtotalMnt,
+      discountMnt,
+      totalMnt,
     });
   } catch (err) {
     console.error("[checkout]", err);
@@ -147,8 +192,14 @@ export async function GET(req: Request) {
 
     const check = await checkQPayInvoicePayment(order.qpay_invoice_id);
     if (isInvoicePaid(check)) {
-      await markOrderPaidByQPayInvoice(order.qpay_invoice_id);
-      return NextResponse.json({ paid: true, status: "PAID" });
+      const result = await finalizeOrderPayment({
+        invoiceId: order.qpay_invoice_id,
+      });
+      return NextResponse.json({
+        paid: true,
+        status: "PAID",
+        smsSent: result.smsSent ?? false,
+      });
     }
 
     return NextResponse.json({ paid: false, status: order.status });

@@ -27,7 +27,9 @@ export function AppHeader() {
     pathname === "/login" ||
     pathname === "/register" ||
     pathname.startsWith("/login/") ||
-    pathname.startsWith("/register/")
+    pathname.startsWith("/register/") ||
+    pathname === "/admin" ||
+    pathname.startsWith("/admin/")
   ) {
     return null;
   }
@@ -43,7 +45,7 @@ export function AppHeader() {
 
   return (
     <header
-      className={`sticky top-0 z-50 border-b transition-[height,background-color,backdrop-filter,box-shadow,border-color] duration-300 md:hidden ${
+      className={`sticky top-0 z-50 border-b pt-[env(safe-area-inset-top)] transition-[height,background-color,backdrop-filter,box-shadow,border-color] duration-300 md:hidden ${
         compact
           ? "border-achira-blue/10 bg-achira-cream/85 shadow-[0_12px_40px_rgba(30,79,150,0.10)] backdrop-blur-md dark:border-achira-cream/8 dark:bg-achira-navy/80 dark:shadow-[0_12px_40px_rgba(0,0,0,0.35)]"
           : "border-achira-blue/10 bg-achira-cream/70 backdrop-blur-sm dark:border-achira-cream/6 dark:bg-achira-navy/60"

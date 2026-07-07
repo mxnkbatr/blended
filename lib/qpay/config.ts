@@ -16,8 +16,10 @@ export function getQPayConfig() {
   const authUrl =
     process.env.QPAY_AUTH_URL?.replace(/\/$/, "") ?? `${baseUrl}/v2/auth/token`;
 
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "");
   const callbackUrl =
     process.env.QPAY_CALLBACK_URL ??
+    (appUrl ? `${appUrl}/api/qpay/callback/` : null) ??
     (process.env.VERCEL_URL
       ? `https://${process.env.VERCEL_URL}/api/qpay/callback/`
       : null);

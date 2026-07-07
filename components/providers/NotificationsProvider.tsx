@@ -8,6 +8,13 @@ import {
   useMemo,
   useState,
 } from "react";
+import { useAuth } from "@/components/providers/AuthProvider";
+import {
+  fetchUserNotifications,
+  markAllUserNotificationsRead,
+  markUserNotificationRead,
+  type InboxNotification,
+} from "@/lib/supabase/notifications";
 
 export type AppNotification = {
   id: string;
@@ -15,6 +22,7 @@ export type AppNotification = {
   body?: string;
   createdAt: number;
   read: boolean;
+  remote?: boolean;
 };
 
 type NotificationsContextValue = {
@@ -24,6 +32,7 @@ type NotificationsContextValue = {
   markAllRead: () => void;
   clear: () => void;
   push: (n: Omit<AppNotification, "id" | "createdAt">) => void;
+  refresh: () => Promise<void>;
 };
 
 const NotificationsContext = createContext<NotificationsContextValue | null>(
@@ -44,21 +53,39 @@ const seed: AppNotification[] = [
     createdAt: Date.now() - 1000 * 60 * 60 * 6,
     read: false,
   },
-  {
-    id: "hours",
-    title: "Ажиллах цаг",
-    body: "Өдөр бүр 10:00–22:00",
-    createdAt: Date.now() - 1000 * 60 * 60 * 24,
-    read: true,
-  },
 ];
+
+function mapRemote(row: InboxNotification): AppNotification {
+  return {
+    id: row.id,
+    title: row.title,
+    body: row.body,
+    createdAt: row.createdAt,
+    read: row.read,
+    remote: true,
+  };
+}
 
 export function NotificationsProvider({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [notifications, setNotifications] = useState<AppNotification[]>(seed);
+  const { user } = useAuth();
+  const [localNotifications, setLocalNotifications] =
+    useState<AppNotification[]>(seed);
+  const [remoteNotifications, setRemoteNotifications] = useState<
+    AppNotification[]
+  >([]);
+
+  const refresh = useCallback(async () => {
+    if (!user) {
+      setRemoteNotifications([]);
+      return;
+    }
+    const rows = await fetchUserNotifications(user.id);
+    setRemoteNotifications(rows.map(mapRemote));
+  }, [user]);
 
   useEffect(() => {
     try {
@@ -68,48 +95,77 @@ export function NotificationsProvider({
       if (!Array.isArray(parsed)) return;
       const list = parsed
         .filter(Boolean)
-        .map((x: any) => ({
+        .map((x: AppNotification) => ({
           id: String(x.id ?? uid()),
           title: String(x.title ?? ""),
           body: x.body ? String(x.body) : undefined,
           createdAt: Number(x.createdAt ?? Date.now()),
           read: Boolean(x.read),
         }))
-        .filter((x: AppNotification) => x.title.length > 0);
-      if (list.length) setNotifications(list);
+        .filter((x) => x.title.length > 0);
+      if (list.length) setLocalNotifications(list);
     } catch {
       // ignore
     }
   }, []);
 
   useEffect(() => {
+    void refresh();
+  }, [refresh]);
+
+  useEffect(() => {
+    if (user) return;
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(notifications));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(localNotifications));
     } catch {
       // ignore
     }
-  }, [notifications]);
+  }, [localNotifications, user]);
+
+  const notifications = useMemo(() => {
+    if (user) return remoteNotifications;
+    return localNotifications;
+  }, [user, remoteNotifications, localNotifications]);
 
   const unreadCount = useMemo(
     () => notifications.reduce((s, n) => s + (n.read ? 0 : 1), 0),
     [notifications],
   );
 
-  const markRead = useCallback((id: string) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n)),
-    );
-  }, []);
+  const markRead = useCallback(
+    (id: string) => {
+      if (user) {
+        setRemoteNotifications((prev) =>
+          prev.map((n) => (n.id === id ? { ...n, read: true } : n)),
+        );
+        void markUserNotificationRead(id);
+        return;
+      }
+      setLocalNotifications((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, read: true } : n)),
+      );
+    },
+    [user],
+  );
 
   const markAllRead = useCallback(() => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-  }, []);
+    if (user) {
+      setRemoteNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+      if (user.id) void markAllUserNotificationsRead(user.id);
+      return;
+    }
+    setLocalNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  }, [user]);
 
-  const clear = useCallback(() => setNotifications([]), []);
+  const clear = useCallback(() => {
+    if (user) setRemoteNotifications([]);
+    else setLocalNotifications([]);
+  }, [user]);
 
   const push = useCallback(
     (n: Omit<AppNotification, "id" | "createdAt">) => {
-      setNotifications((prev) => [
+      if (user) return;
+      setLocalNotifications((prev) => [
         {
           id: uid(),
           createdAt: Date.now(),
@@ -120,19 +176,21 @@ export function NotificationsProvider({
         ...prev,
       ]);
     },
-    [],
+    [user],
   );
 
-  const value = useMemo<NotificationsContextValue>(() => {
-    return {
+  const value = useMemo<NotificationsContextValue>(
+    () => ({
       notifications,
       unreadCount,
       markRead,
       markAllRead,
       clear,
       push,
-    };
-  }, [notifications, unreadCount, markRead, markAllRead, clear, push]);
+      refresh,
+    }),
+    [notifications, unreadCount, markRead, markAllRead, clear, push, refresh],
+  );
 
   return (
     <NotificationsContext.Provider value={value}>
@@ -149,4 +207,3 @@ export function useNotifications() {
     );
   return ctx;
 }
-

@@ -4,6 +4,7 @@ import { AchiraWordmark } from "./AchiraWordmark";
 import { HomeBanner } from "./HomeBanner";
 import { HomeBarberSlider } from "./HomeBarberSlider";
 import { HomeBestSellerGrid } from "./HomeBestSellerGrid";
+import { HomeShopSlider } from "./HomeShopSlider";
 
 const infoDesktop: {
   label: string;
@@ -29,7 +30,7 @@ export function Hero() {
   return (
     <section className="relative flex min-h-[calc(100dvh-8.5rem)] flex-col justify-center px-4 pb-6 pt-3 md:min-h-[calc(100dvh-4rem)] md:px-8 md:py-20">
       <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_85%_55%_at_50%_-8%,rgba(30,79,150,0.12),transparent_55%),radial-gradient(ellipse_at_bottom,rgba(30,79,150,0.06),var(--color-achira-cream))] dark:bg-[radial-gradient(ellipse_85%_55%_at_50%_-8%,rgba(42,98,176,0.25),transparent_55%),radial-gradient(ellipse_at_bottom,rgba(15,26,46,0.95),var(--color-achira-navy))]"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_90%_60%_at_50%_-12%,rgba(30,79,150,0.10),transparent_58%),radial-gradient(ellipse_at_bottom,rgba(196,165,116,0.08),var(--color-achira-cream))] dark:bg-[radial-gradient(ellipse_90%_60%_at_50%_-12%,rgba(42,98,176,0.22),transparent_58%),radial-gradient(ellipse_at_bottom,rgba(15,26,46,0.92),var(--color-achira-navy))]"
         aria-hidden
       />
 
@@ -37,6 +38,7 @@ export function Hero() {
       <div className="relative mx-auto flex w-full max-w-md flex-col md:hidden">
         <HomeBanner />
         <HomeBarberSlider />
+        <HomeShopSlider />
         <HomeBestSellerGrid />
       </div>
 

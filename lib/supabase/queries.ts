@@ -2,19 +2,30 @@ import type { Barber } from "@/lib/data/barbers";
 import { barbers as fallbackBarbers } from "@/lib/data/barbers";
 import type { Product } from "@/lib/data/products";
 import { products as fallbackProducts } from "@/lib/data/products";
+import {
+  normalizeBarberSchedule,
+} from "@/lib/barbers/schedule";
+import { resolveBookingPriceMnt } from "@/lib/appointments/pricing";
 import { createSupabaseBrowserClient } from "./client";
+
+const PRODUCT_SELECT =
+  "slug, name, description, price_mnt, image_url, in_stock, always_visible";
 
 function mapBarber(row: {
   id: string;
   name: string;
   title: string;
   image_url: string | null;
+  booking_price_mnt?: number | null;
+  schedule?: unknown;
 }): Barber {
   return {
     id: row.id,
     name: row.name,
     title: row.title,
     imageUrl: row.image_url ?? "",
+    bookingPriceMnt: resolveBookingPriceMnt(row.booking_price_mnt),
+    schedule: normalizeBarberSchedule(row.schedule),
   };
 }
 
@@ -24,6 +35,8 @@ function mapProduct(row: {
   description: string;
   price_mnt: number;
   image_url: string | null;
+  in_stock?: boolean;
+  always_visible?: boolean;
 }): Product {
   return {
     slug: row.slug,
@@ -31,6 +44,16 @@ function mapProduct(row: {
     description: row.description,
     priceMnt: row.price_mnt,
     imageUrl: row.image_url ?? "",
+    inStock: row.in_stock ?? true,
+    alwaysVisible: row.always_visible ?? true,
+  };
+}
+
+function withFallbackDefaults(product: Product): Product {
+  return {
+    ...product,
+    inStock: product.inStock ?? true,
+    alwaysVisible: product.alwaysVisible ?? true,
   };
 }
 
@@ -40,7 +63,7 @@ export async function fetchBarbers(): Promise<Barber[]> {
 
   const { data, error } = await supabase
     .from("barbers")
-    .select("id, name, title, image_url")
+    .select("id, name, title, image_url, booking_price_mnt, schedule")
     .eq("active", true)
     .order("name");
 
@@ -54,17 +77,23 @@ export async function fetchBarbers(): Promise<Barber[]> {
 
 export async function fetchProducts(): Promise<Product[]> {
   const supabase = createSupabaseBrowserClient();
-  if (!supabase) return fallbackProducts;
+  if (!supabase) {
+    return fallbackProducts.map(withFallbackDefaults);
+  }
 
   const { data, error } = await supabase
     .from("products")
-    .select("slug, name, description, price_mnt, image_url")
-    .eq("in_stock", true)
+    .select(PRODUCT_SELECT)
+    .or("in_stock.eq.true,always_visible.eq.true")
     .order("name");
 
-  if (error || !data?.length) {
-    console.warn("[supabase] fetchProducts:", error?.message ?? "empty, using fallback");
-    return fallbackProducts;
+  if (error) {
+    console.warn("[supabase] fetchProducts:", error.message);
+    return fallbackProducts.map(withFallbackDefaults);
+  }
+
+  if (!data?.length) {
+    return fallbackProducts.map(withFallbackDefaults);
   }
 
   return data.map(mapProduct);
@@ -73,21 +102,27 @@ export async function fetchProducts(): Promise<Product[]> {
 export async function fetchProductBySlug(slug: string): Promise<Product | null> {
   const supabase = createSupabaseBrowserClient();
   if (!supabase) {
-    return fallbackProducts.find((p) => p.slug === slug) ?? null;
+    const product = fallbackProducts.find((p) => p.slug === slug);
+    return product ? withFallbackDefaults(product) : null;
   }
 
   const { data, error } = await supabase
     .from("products")
-    .select("slug, name, description, price_mnt, image_url")
+    .select(PRODUCT_SELECT)
     .eq("slug", slug)
-    .eq("in_stock", true)
+    .or("in_stock.eq.true,always_visible.eq.true")
     .maybeSingle();
 
-  if (error || !data) {
-    return fallbackProducts.find((p) => p.slug === slug) ?? null;
+  if (error) {
+    console.warn("[supabase] fetchProductBySlug:", error.message);
   }
 
-  return mapProduct(data);
+  if (data) {
+    return mapProduct(data);
+  }
+
+  const fallback = fallbackProducts.find((p) => p.slug === slug);
+  return fallback ? withFallbackDefaults(fallback) : null;
 }
 
 export async function fetchBookedTimes(
@@ -148,6 +183,7 @@ export async function createAppointment(
   const startsAt = toMongoliaDateTime(input.date, input.time);
   const endsAt = new Date(startsAt.getTime() + 60 * 60 * 1000);
   const id = crypto.randomUUID();
+  const now = new Date().toISOString();
 
   const { data, error } = await supabase
     .from("appointments")
@@ -159,6 +195,8 @@ export async function createAppointment(
       starts_at: startsAt.toISOString(),
       ends_at: endsAt.toISOString(),
       status: "PENDING",
+      created_at: now,
+      updated_at: now,
     })
     .select("id")
     .single();

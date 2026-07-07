@@ -1,26 +1,34 @@
 "use client";
 
 import Image from "next/image";
-import { CalendarDays, CheckCircle2, ChevronRight, Clock, Scissors, User } from "lucide-react";
+import { CalendarDays, CheckCircle2, ChevronRight, Clock, Loader2, Scissors, User } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useBarbers } from "@/hooks/useBarbers";
 import {
-  createAppointment,
+  buildSlotsForDate,
+  getDaySchedule,
+  isBarberWorkingOnDate,
+} from "@/lib/barbers/schedule";
+import {
   fetchBookedTimes,
 } from "@/lib/supabase/queries";
 import { hapticLight, hapticSuccess } from "@/lib/haptics";
+import { apiUrl } from "@/lib/api-base";
 
-const OPEN_HOUR = 10;
-const CLOSE_HOUR = 22;
+import {
+  DEFAULT_BOOKING_PRICE_MNT,
+  formatBookingPriceMnt,
+} from "@/lib/appointments/pricing";
+
 const TZ = "Asia/Ulaanbaatar";
 
-function buildSlots(): string[] {
-  const slots: string[] = [];
-  for (let h = OPEN_HOUR; h < CLOSE_HOUR; h++) {
-    slots.push(`${h.toString().padStart(2, "0")}:00`);
-  }
-  return slots;
-}
+type QPayPayload = {
+  invoiceId: string;
+  qrText: string | null;
+  qrImage: string | null;
+  shortUrl: string | null;
+  urls: { name: string; description: string; logo: string; link: string }[];
+};
 
 function toISODate(d: Date): string {
   return new Intl.DateTimeFormat("en-CA", {
@@ -140,15 +148,20 @@ function Stepper({ step }: { step: 1 | 2 | 3 }) {
 
 export function BookingSystem() {
   const { barbers } = useBarbers();
-  const slots = useMemo(() => buildSlots(), []);
   const [barberId, setBarberId] = useState<string | null>(null);
   const [date, setDate] = useState(() => toISODate(new Date()));
   const [time, setTime] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [promoCode, setPromoCode] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [appointmentId, setAppointmentId] = useState<string | null>(null);
+  const [qpay, setQpay] = useState<QPayPayload | null>(null);
+  const [paymentRef, setPaymentRef] = useState<string | null>(null);
+  const [totalMnt, setTotalMnt] = useState(DEFAULT_BOOKING_PRICE_MNT);
+  const [polling, setPolling] = useState(false);
   const [bookedTimes, setBookedTimes] = useState<string[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
 
@@ -157,6 +170,16 @@ export function BookingSystem() {
   const formSectionRef = useRef<HTMLDivElement | null>(null);
 
   const selectedBarber = barbers.find((b) => b.id === barberId);
+  const bookingPriceMnt =
+    selectedBarber?.bookingPriceMnt ?? DEFAULT_BOOKING_PRICE_MNT;
+  const slots = useMemo(
+    () => buildSlotsForDate(selectedBarber?.schedule, date),
+    [selectedBarber?.schedule, date],
+  );
+  const daySchedule = useMemo(
+    () => getDaySchedule(selectedBarber?.schedule, date),
+    [selectedBarber?.schedule, date],
+  );
   const dayOptions = useMemo(() => {
     const base = new Date();
     base.setHours(0, 0, 0, 0);
@@ -172,6 +195,16 @@ export function BookingSystem() {
   }, []);
 
   const step: 1 | 2 | 3 = !barberId ? 1 : !time ? 2 : 3;
+
+  useEffect(() => {
+    if (!selectedBarber) return;
+    if (!isBarberWorkingOnDate(selectedBarber.schedule, date)) {
+      const next = dayOptions.find((d) =>
+        isBarberWorkingOnDate(selectedBarber.schedule, d.iso),
+      );
+      if (next && next.iso !== date) setDate(next.iso);
+    }
+  }, [selectedBarber, date, dayOptions]);
 
   useEffect(() => {
     if (!barberId) {
@@ -194,8 +227,44 @@ export function BookingSystem() {
     };
   }, [barberId, date]);
 
+  useEffect(() => {
+    setTotalMnt(bookingPriceMnt);
+  }, [bookingPriceMnt]);
+
+  useEffect(() => {
+    if (!appointmentId || submitted) return;
+
+    let cancelled = false;
+    setPolling(true);
+
+    const tick = async () => {
+      try {
+        const res = await fetch(
+          apiUrl(`/api/appointments/?appointmentId=${appointmentId}`),
+        );
+        const data = (await res.json()) as { paid?: boolean };
+        if (!cancelled && data.paid) {
+          setPolling(false);
+          await hapticSuccess();
+          setSubmitted(true);
+        }
+      } catch {
+        /* retry */
+      }
+    };
+
+    void tick();
+    const id = window.setInterval(tick, 3000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(id);
+      setPolling(false);
+    };
+  }, [appointmentId, submitted]);
+
   function isSlotUnavailable(slot: string): boolean {
-    if (!barberId) return true;
+    if (!barberId || !selectedBarber) return true;
+    if (!slots.includes(slot)) return true;
     if (isPastSlot(date, slot)) return true;
     return bookedTimes.includes(slot);
   }
@@ -224,10 +293,16 @@ export function BookingSystem() {
     setSubmitted(false);
     setSubmitting(false);
     setSubmitError(null);
+    setAppointmentId(null);
+    setQpay(null);
+    setPaymentRef(null);
+    setTotalMnt(DEFAULT_BOOKING_PRICE_MNT);
+    setPolling(false);
     setBarberId(null);
     setTime(null);
     setName("");
     setPhone("");
+    setPromoCode("");
   }
 
   async function handleConfirm(e: React.FormEvent) {
@@ -242,28 +317,129 @@ export function BookingSystem() {
     setSubmitting(true);
     setSubmitError(null);
 
-    const result = await createAppointment({
-      barberId,
-      date,
-      time,
-      customerName: name,
-      customerPhone: phone,
+    const res = await fetch(apiUrl("/api/appointments/"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        barberId,
+        date,
+        time,
+        customerName: name,
+        customerPhone: phone,
+        promoCode: promoCode.trim() || undefined,
+      }),
     });
+
+    const result = (await res.json()) as {
+      id?: string;
+      error?: string;
+      qpay?: QPayPayload;
+      paymentRef?: string;
+      totalMnt?: number;
+    };
 
     setSubmitting(false);
 
-    if (!result.ok) {
-      setSubmitError(
-        result.error.includes("duplicate") || result.error.includes("unique")
-          ? "Энэ цаг аль хэдийн захиалагдсан байна. Өөр цаг сонгоно уу."
-          : result.error,
-      );
+    if (!res.ok || !result.id || !result.qpay) {
+      setSubmitError(result.error ?? "Захиалга үүсгэж чадсангүй.");
       return;
     }
 
-    await hapticSuccess();
-    setSubmitted(true);
+    setAppointmentId(result.id);
+    setQpay(result.qpay);
+    setPaymentRef(result.paymentRef ?? null);
+    setTotalMnt(result.totalMnt ?? bookingPriceMnt);
     setBookedTimes((prev) => (prev.includes(time) ? prev : [...prev, time]));
+  }
+
+  if (appointmentId && qpay && !submitted && selectedBarber && time) {
+    const qrSrc = qpay.qrImage
+      ? qpay.qrImage.startsWith("data:")
+        ? qpay.qrImage
+        : `data:image/png;base64,${qpay.qrImage}`
+      : null;
+
+    return (
+      <div className="mx-auto max-w-lg rounded-3xl border border-achira-blue/12 bg-achira-paper/70 p-7 shadow-[0_24px_80px_rgba(30,79,150,0.12)] dark:border-achira-cream/10 dark:bg-achira-blue/10 dark:shadow-[0_24px_80px_rgba(0,0,0,0.35)] md:max-w-xl md:p-10">
+        <p className="text-center text-[10px] uppercase tracking-[0.28em] text-achira-blue/55 dark:text-achira-cream/50">
+          QPay төлбөр
+        </p>
+        <h2 className="mt-2 text-center font-[family-name:var(--font-display)] text-2xl text-achira-blue-dark dark:text-achira-cream">
+          Төлбөр төлнө үү
+        </h2>
+        <p className="mt-3 text-center text-sm text-achira-blue/65 dark:text-achira-cream/60">
+          <span className="font-medium text-achira-blue-dark dark:text-achira-cream">
+            {selectedBarber.name}
+          </span>{" "}
+          — {date} {time}
+        </p>
+
+        <div className="mt-6 flex flex-col items-center rounded-2xl border border-achira-blue/10 bg-white/70 p-5 dark:border-achira-cream/10 dark:bg-achira-navy/40">
+          {qrSrc ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={qrSrc}
+              alt="QPay QR"
+              className="h-52 w-52 rounded-2xl border border-achira-blue/10 bg-white p-2"
+            />
+          ) : (
+            <div className="grid h-52 w-52 place-items-center rounded-2xl border border-dashed border-achira-blue/20 text-center text-xs text-achira-blue/50">
+              QR ачааллаж байна...
+            </div>
+          )}
+
+          <p className="mt-4 text-lg font-semibold text-achira-blue-dark dark:text-achira-cream">
+            {formatBookingPriceMnt(totalMnt)}
+          </p>
+          {paymentRef && (
+            <p className="mt-2 font-mono text-xs text-achira-blue/55 dark:text-achira-cream/50">
+              {paymentRef}
+            </p>
+          )}
+
+          {polling && (
+            <p className="mt-4 flex items-center gap-2 text-xs text-achira-blue/55 dark:text-achira-cream/50">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              Төлбөр хүлээж байна...
+            </p>
+          )}
+
+          {qpay.urls.length > 0 && (
+            <ul className="mt-5 w-full space-y-2">
+              {qpay.urls.slice(0, 6).map((bank) => (
+                <li key={bank.link}>
+                  <a
+                    href={bank.link}
+                    className="flex items-center gap-3 rounded-2xl border border-achira-blue/10 px-3 py-2.5 text-sm text-achira-blue-dark transition-colors hover:bg-achira-blue/5 dark:border-achira-cream/10 dark:text-achira-cream dark:hover:bg-achira-cream/5"
+                  >
+                    {bank.logo ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={bank.logo} alt="" className="h-8 w-8 rounded-lg object-contain" />
+                    ) : (
+                      <span className="grid h-8 w-8 place-items-center rounded-lg bg-achira-blue/10 text-[10px] font-bold">
+                        {bank.name.slice(0, 2)}
+                      </span>
+                    )}
+                    <span>{bank.description || bank.name}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <p className="mt-5 text-center text-xs text-achira-blue/55 dark:text-achira-cream/50">
+          Төлбөр амжилттай болсны дараа захиалга баталгаажна.
+        </p>
+        <button
+          type="button"
+          onClick={resetFlow}
+          className="mt-5 w-full text-center text-sm text-achira-blue/55 underline-offset-4 hover:underline dark:text-achira-cream/50"
+        >
+          Цуцлах
+        </button>
+      </div>
+    );
   }
 
   if (submitted && selectedBarber && time) {
@@ -284,7 +460,8 @@ export function BookingSystem() {
           </span>{" "}
           babert{" "}
           <span className="font-medium">{date}</span> өдөр{" "}
-          <span className="font-medium">{time}</span> цагт захиалга бүртгэгдлээ.
+          <span className="font-medium">{time}</span> цагт захиалга амжилттай
+          баталгаажлаа.
         </p>
         <button
           type="button"
@@ -395,14 +572,19 @@ export function BookingSystem() {
             <div className="flex snap-x snap-mandatory gap-2">
               {dayOptions.map((d) => {
                 const active = d.iso === date;
+                const dayOff =
+                  !!selectedBarber &&
+                  !isBarberWorkingOnDate(selectedBarber.schedule, d.iso);
                 return (
                   <button
                     key={d.iso}
                     type="button"
-                    disabled={!barberId}
+                    disabled={!barberId || dayOff}
                     onClick={() => pickDate(d.iso)}
                     className={`shrink-0 snap-start rounded-2xl border px-3 py-2 text-left transition-all active:scale-[0.98] ${
-                      active
+                      dayOff
+                        ? "cursor-not-allowed border-transparent bg-achira-blue/5 text-achira-blue/30 line-through dark:bg-achira-cream/5 dark:text-achira-cream/30"
+                        : active
                         ? "border-achira-blue bg-achira-blue text-achira-cream dark:border-achira-cream dark:bg-achira-cream dark:text-achira-blue-dark"
                         : "border-achira-blue/12 bg-white/70 text-achira-blue-dark dark:border-achira-cream/12 dark:bg-achira-navy/50 dark:text-achira-cream"
                     }`}
@@ -429,13 +611,19 @@ export function BookingSystem() {
             <p className={sectionTitle}>3. Цаг</p>
             <h2 className={sectionHeading}>Цаг сонгох</h2>
             <p className={sectionHint}>
-              {OPEN_HOUR}:00 — {CLOSE_HOUR}:00, 1 цагийн зайтай.
+              {daySchedule.off
+                ? "Энэ өдөр бабер ажиллахгүй."
+                : `${daySchedule.start.toString().padStart(2, "0")}:00 — ${daySchedule.end.toString().padStart(2, "0")}:00, 1 цагийн зайтай.`}
             </p>
           </div>
           <div className="rounded-2xl border border-achira-blue/10 bg-white/60 p-3 dark:border-achira-cream/10 dark:bg-achira-navy/40">
             {loadingSlots ? (
               <p className="py-6 text-center text-xs text-achira-blue/55 dark:text-achira-cream/50">
                 Цаг шалгаж байна...
+              </p>
+            ) : slots.length === 0 ? (
+              <p className="py-6 text-center text-xs text-achira-blue/55 dark:text-achira-cream/50">
+                Энэ өдөр боломжит цаг байхгүй.
               </p>
             ) : (
               <div className="grid grid-cols-3 gap-2">
@@ -469,7 +657,10 @@ export function BookingSystem() {
           <section ref={formSectionRef} className="scroll-mt-24 pt-1">
             <div className="rounded-2xl border border-achira-blue/10 bg-achira-paper/60 p-4 dark:border-achira-cream/10 dark:bg-achira-blue/10">
               <p className="text-[11px] text-achira-blue/60 dark:text-achira-cream/55">
-                Баталгаажуулахын тулд мэдээллээ үлдээнэ үү.
+                Баталгаажуулахын тулд мэдээллээ үлдээнэ үү. Урьдчилсан төлбөр:{" "}
+                <span className="font-medium text-achira-blue-dark dark:text-achira-cream">
+                  {formatBookingPriceMnt(bookingPriceMnt)}
+                </span>
               </p>
               <form onSubmit={handleConfirm} className="mt-4 space-y-3">
                 <div>
@@ -498,6 +689,17 @@ export function BookingSystem() {
                     placeholder="99112233"
                   />
                 </div>
+                <div>
+                  <label className="text-[9px] font-medium uppercase tracking-[0.22em] text-achira-blue/55 dark:text-achira-cream/50">
+                    Промо код (заавал биш)
+                  </label>
+                  <input
+                    value={promoCode}
+                    onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                    className="mt-1 w-full rounded-2xl border border-achira-blue/12 bg-white/90 px-4 py-3 text-base uppercase text-achira-ink outline-none focus:border-achira-blue/30 dark:border-achira-cream/12 dark:bg-achira-navy/60 dark:text-achira-cream"
+                    placeholder=""
+                  />
+                </div>
                 {submitError && (
                   <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:border-rose-900/40 dark:bg-rose-950/30 dark:text-rose-300">
                     {submitError}
@@ -508,7 +710,7 @@ export function BookingSystem() {
                   disabled={submitting}
                   className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-achira-blue py-3.5 text-[10px] font-semibold uppercase tracking-[0.28em] text-achira-cream active:scale-[0.98] disabled:opacity-60 dark:bg-achira-cream dark:text-achira-blue-dark"
                 >
-                  {submitting ? "Илгээж байна..." : "Баталгаажуулах"}
+                  {submitting ? "Илгээж байна..." : "Төлбөр төлөх"}
                   <ChevronRight className="h-4 w-4" strokeWidth={1.6} />
                 </button>
               </form>
@@ -612,14 +814,19 @@ export function BookingSystem() {
               <div className="flex flex-wrap gap-2.5">
                 {dayOptions.map((d) => {
                   const active = d.iso === date;
+                  const dayOff =
+                    !!selectedBarber &&
+                    !isBarberWorkingOnDate(selectedBarber.schedule, d.iso);
                   return (
                     <button
                       key={d.iso}
                       type="button"
-                      disabled={!barberId}
+                      disabled={!barberId || dayOff}
                       onClick={() => pickDate(d.iso)}
-                      className={`min-w-[4.5rem] rounded-2xl border px-4 py-3 text-center transition-all hover:scale-[1.02] ${
-                        active
+                      className={`min-w-[4.5rem] rounded-2xl border px-4 py-3 text-center transition-all ${
+                        dayOff
+                          ? "cursor-not-allowed border-transparent bg-achira-blue/5 text-achira-blue/30 line-through dark:bg-achira-cream/5 dark:text-achira-cream/30"
+                          : active
                           ? "border-achira-blue bg-achira-blue text-achira-cream shadow-[0_8px_24px_rgba(30,79,150,0.25)] dark:border-achira-cream dark:bg-achira-cream dark:text-achira-blue-dark"
                           : "border-achira-blue/12 bg-white/70 text-achira-blue-dark hover:border-achira-blue/25 dark:border-achira-cream/12 dark:bg-achira-navy/50 dark:text-achira-cream dark:hover:border-achira-cream/25"
                       }`}
@@ -680,7 +887,9 @@ export function BookingSystem() {
                   </p>
                 </div>
                 <p className="text-xs text-achira-blue/55 dark:text-achira-cream/50">
-                  {OPEN_HOUR}:00 — {CLOSE_HOUR}:00
+                  {daySchedule.off
+                    ? "Ажиллахгүй"
+                    : `${daySchedule.start.toString().padStart(2, "0")}:00 — ${daySchedule.end.toString().padStart(2, "0")}:00`}
                 </p>
 
                 <div className="mt-4 rounded-2xl border border-achira-blue/8 bg-white/50 p-3 dark:border-achira-cream/8 dark:bg-achira-navy/40">
@@ -691,6 +900,10 @@ export function BookingSystem() {
                   ) : loadingSlots ? (
                     <p className="py-8 text-center text-sm text-achira-blue/55 dark:text-achira-cream/50">
                       Цаг шалгаж байна...
+                    </p>
+                  ) : slots.length === 0 ? (
+                    <p className="py-8 text-center text-sm text-achira-blue/55 dark:text-achira-cream/50">
+                      Энэ өдөр боломжит цаг байхгүй.
                     </p>
                   ) : (
                     <div className="grid grid-cols-3 gap-2">
@@ -734,6 +947,10 @@ export function BookingSystem() {
                           <span className="text-achira-blue/55 dark:text-achira-cream/50">Цаг:</span>{" "}
                           {time}
                         </p>
+                        <p>
+                          <span className="text-achira-blue/55 dark:text-achira-cream/50">Төлбөр:</span>{" "}
+                          {formatBookingPriceMnt(bookingPriceMnt)}
+                        </p>
                       </div>
                     </div>
 
@@ -763,6 +980,17 @@ export function BookingSystem() {
                           placeholder="99112233"
                         />
                       </div>
+                      <div>
+                        <label className="text-[10px] font-medium uppercase tracking-[0.22em] text-achira-blue/55 dark:text-achira-cream/50">
+                          Промо код (заавал биш)
+                        </label>
+                        <input
+                          value={promoCode}
+                          onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                          className="mt-1.5 w-full rounded-xl border border-achira-blue/12 bg-white/90 px-4 py-3 text-sm uppercase text-achira-ink outline-none transition-colors focus:border-achira-blue/30 dark:border-achira-cream/12 dark:bg-achira-navy/60 dark:text-achira-cream"
+                          placeholder=""
+                        />
+                      </div>
                       {submitError && (
                         <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:border-rose-900/40 dark:bg-rose-950/30 dark:text-rose-300">
                           {submitError}
@@ -773,7 +1001,7 @@ export function BookingSystem() {
                         disabled={submitting}
                         className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-achira-blue py-4 text-xs font-semibold uppercase tracking-[0.28em] text-achira-cream shadow-[0_8px_32px_rgba(30,79,150,0.25)] transition-all hover:bg-achira-blue-dark hover:scale-[1.01] disabled:opacity-60 dark:bg-achira-cream dark:text-achira-blue-dark dark:shadow-[0_8px_32px_rgba(245,240,232,0.15)] dark:hover:bg-achira-paper"
                       >
-                        {submitting ? "Илгээж байна..." : "Баталгаажуулах"}
+                        {submitting ? "Илгээж байна..." : "Төлбөр төлөх"}
                         <ChevronRight className="h-4 w-4" strokeWidth={1.6} />
                       </button>
                     </form>

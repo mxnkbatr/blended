@@ -4,6 +4,8 @@ export type Product = {
   priceMnt: number;
   description: string;
   imageUrl: string;
+  inStock?: boolean;
+  alwaysVisible?: boolean;
 };
 
 export const products: Product[] = [

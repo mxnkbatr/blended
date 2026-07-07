@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect } from "react";
 import { Check, CheckCheck, Trash2 } from "lucide-react";
+import { useAuth } from "@/components/providers/AuthProvider";
 import { useNotifications } from "@/components/providers/NotificationsProvider";
 
 function formatTime(ts: number) {
@@ -17,8 +19,13 @@ function formatTime(ts: number) {
 }
 
 export function NotificationsClient() {
-  const { notifications, unreadCount, markRead, markAllRead, clear } =
+  const { user } = useAuth();
+  const { notifications, unreadCount, markRead, markAllRead, clear, refresh } =
     useNotifications();
+
+  useEffect(() => {
+    if (user) void refresh();
+  }, [user, refresh]);
 
   return (
     <main className="mx-auto max-w-md px-4 py-10 md:max-w-2xl md:py-14">

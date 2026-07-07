@@ -14,7 +14,7 @@ export function ThemeToggle() {
   if (!mounted) {
     return (
       <div
-        className="inline-flex items-center rounded-2xl border border-black/10 bg-black/[0.02] p-1 opacity-60 dark:border-white/10 dark:bg-white/[0.03]"
+        className="inline-flex items-center rounded-2xl border border-achira-blue/12 bg-achira-cream/60 p-1 opacity-60 dark:border-achira-cream/10 dark:bg-achira-navy/60"
         aria-label="Theme"
       >
         <div className="h-9 w-[4.25rem]" />
@@ -27,7 +27,7 @@ export function ThemeToggle() {
 
   return (
     <div
-      className="inline-flex items-center rounded-2xl border border-black/10 bg-black/[0.02] p-1 dark:border-white/10 dark:bg-white/[0.03]"
+      className="inline-flex items-center rounded-2xl border border-achira-blue/12 bg-achira-cream/60 p-1 dark:border-achira-cream/10 dark:bg-achira-navy/60"
       role="radiogroup"
       aria-label="Theme"
     >
@@ -38,8 +38,8 @@ export function ThemeToggle() {
         onClick={() => setTheme("light")}
         className={`min-w-[4.25rem] rounded-xl px-3 py-2 text-[11px] font-semibold tracking-wide transition-colors active:scale-[0.99] ${
           value === "light"
-            ? "bg-white text-zinc-950 shadow-[0_10px_30px_rgba(0,0,0,0.08)]"
-            : "text-zinc-600 hover:text-zinc-800 dark:text-zinc-500 dark:hover:text-zinc-300"
+            ? "bg-white text-achira-blue-dark shadow-[0_10px_30px_rgba(21,58,112,0.10)]"
+            : "text-achira-blue/55 hover:text-achira-blue dark:text-achira-cream/55 dark:hover:text-achira-cream"
         }`}
       >
         {t("light")}
@@ -51,8 +51,8 @@ export function ThemeToggle() {
         onClick={() => setTheme("dark")}
         className={`min-w-[4.25rem] rounded-xl px-3 py-2 text-[11px] font-semibold tracking-wide transition-colors active:scale-[0.99] ${
           value === "dark"
-            ? "bg-zinc-950 text-white shadow-[0_10px_30px_rgba(0,0,0,0.25)]"
-            : "text-zinc-600 hover:text-zinc-800 dark:text-zinc-500 dark:hover:text-zinc-300"
+            ? "bg-achira-navy text-achira-cream shadow-[0_10px_30px_rgba(0,0,0,0.28)]"
+            : "text-achira-blue/55 hover:text-achira-blue dark:text-achira-cream/55 dark:hover:text-achira-cream"
         }`}
       >
         {t("dark")}
@@ -60,4 +60,3 @@ export function ThemeToggle() {
     </div>
   );
 }
-

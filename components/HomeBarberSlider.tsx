@@ -11,16 +11,12 @@ export function HomeBarberSlider() {
     <div className="mt-7 w-full text-left">
       <div className="mb-3 flex items-end justify-between gap-2 px-0.5">
         <div>
-          <p className="text-[8px] font-medium uppercase tracking-[0.26em] text-achira-blue/55 dark:text-achira-cream/50">
-            Баберууд
-          </p>
-          <p className="mt-0.5 font-[family-name:var(--font-display)] text-[12px] tracking-wide text-achira-blue-dark dark:text-achira-cream">
-            Манай баг
-          </p>
+          <p className="premium-section-kicker">Баберууд</p>
+          <p className="premium-section-title mt-1">Манай баг</p>
         </div>
         <Link
           href="/booking"
-          className="inline-flex items-center gap-1 rounded-full border border-achira-blue/12 bg-achira-blue/5 px-2.5 py-1 text-[8px] font-semibold uppercase tracking-[0.2em] text-achira-blue transition-colors hover:bg-achira-blue/10 dark:border-achira-cream/12 dark:bg-achira-cream/5 dark:text-achira-cream dark:hover:bg-achira-cream/10"
+          className="inline-flex items-center gap-1 rounded-full border border-achira-gold/25 bg-gradient-to-r from-achira-cream/80 to-achira-paper/90 px-3 py-1.5 text-[8px] font-semibold uppercase tracking-[0.22em] text-achira-blue-dark shadow-[0_8px_24px_rgba(21,58,112,0.08)] transition-[transform,box-shadow] hover:shadow-[0_10px_28px_rgba(21,58,112,0.12)] active:scale-[0.98] dark:border-achira-gold/20 dark:from-achira-navy/80 dark:to-achira-blue/20 dark:text-achira-cream"
         >
           Цаг авах
           <ChevronRight className="h-2.5 w-2.5" strokeWidth={1.25} />
@@ -44,7 +40,7 @@ export function HomeBarberSlider() {
               href="/booking"
               className="group/link w-[8.25rem] shrink-0 snap-start touch-manipulation sm:w-[8.75rem]"
             >
-              <div className="relative aspect-[4/5] overflow-hidden rounded-[1.5rem] border border-black/10 bg-white shadow-[0_10px_30px_rgba(0,0,0,0.10)] ring-1 ring-black/[0.04] transition-[transform,box-shadow,border-color] duration-200 ease-[cubic-bezier(0.33,1,0.68,1)] active:scale-[0.98] dark:border-white/10 dark:bg-white/[0.04] dark:shadow-[0_18px_60px_rgba(0,0,0,0.45)] dark:ring-white/[0.06]">
+              <div className="relative aspect-[4/5] overflow-hidden rounded-[1.5rem] border border-achira-gold/15 bg-white shadow-[0_14px_40px_rgba(21,58,112,0.12)] ring-1 ring-black/[0.03] transition-[transform,box-shadow,border-color] duration-300 ease-[cubic-bezier(0.33,1,0.68,1)] group-hover/link:shadow-[0_18px_50px_rgba(21,58,112,0.16)] active:scale-[0.98] dark:border-achira-gold/10 dark:bg-white/[0.04] dark:shadow-[0_18px_60px_rgba(0,0,0,0.45)] dark:ring-white/[0.06]">
                 <Image
                   src={b.imageUrl}
                   alt={b.name}

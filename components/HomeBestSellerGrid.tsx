@@ -10,14 +10,14 @@ export function HomeBestSellerGrid() {
   const { t } = useI18n();
 
   return (
-    <section className="mt-5 w-full">
+    <section className="mt-6 w-full">
       <div className="px-0.5">
-        <p className="text-[12px] font-bold tracking-wide text-achira-blue-dark dark:text-achira-cream">
-          {t("bestSeller")}
-        </p>
-        <p className="mt-1 text-[10px] uppercase tracking-[0.28em] text-achira-blue/55 dark:text-achira-cream/50">
-          {t("bestSeller")}
-        </p>
+        <div className="flex items-center gap-3">
+          <span className="h-px flex-1 bg-gradient-to-r from-transparent via-achira-gold/35 to-transparent" />
+          <p className="premium-section-kicker">{t("bestSeller")}</p>
+          <span className="h-px flex-1 bg-gradient-to-r from-transparent via-achira-gold/35 to-transparent" />
+        </div>
+        <p className="premium-section-title mt-2 text-center">{t("bestSeller")}</p>
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-3">

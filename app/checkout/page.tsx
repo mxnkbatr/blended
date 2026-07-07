@@ -8,6 +8,7 @@ import { CheckCircle2, Loader2 } from "lucide-react";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useCart } from "@/components/providers/CartProvider";
 import { hapticLight, hapticSuccess } from "@/lib/haptics";
+import { apiUrl } from "@/lib/api-base";
 
 function formatMnt(n: number) {
   return new Intl.NumberFormat("mn-MN").format(n) + " ₮";
@@ -37,7 +38,14 @@ export default function CheckoutPage() {
   const [orderTotalMnt, setOrderTotalMnt] = useState(0);
   const [qpay, setQpay] = useState<QPayPayload | null>(null);
   const [paid, setPaid] = useState(false);
+  const [smsSent, setSmsSent] = useState(false);
   const [polling, setPolling] = useState(false);
+  const [promoCode, setPromoCode] = useState("");
+  const [promoDiscountMnt, setPromoDiscountMnt] = useState(0);
+  const [promoMessage, setPromoMessage] = useState<string | null>(null);
+  const [promoChecking, setPromoChecking] = useState(false);
+
+  const payableMnt = Math.max(0, totalMnt - promoDiscountMnt);
 
   useEffect(() => {
     if (!orderId || paid || tab !== "qpay") return;
@@ -47,10 +55,11 @@ export default function CheckoutPage() {
 
     const tick = async () => {
       try {
-        const res = await fetch(`/api/checkout/?orderId=${orderId}`);
-        const data = (await res.json()) as { paid?: boolean };
+        const res = await fetch(apiUrl(`/api/checkout/?orderId=${orderId}`));
+        const data = (await res.json()) as { paid?: boolean; smsSent?: boolean };
         if (!cancelled && data.paid) {
           setPaid(true);
+          setSmsSent(Boolean(data.smsSent));
           setPolling(false);
           await hapticSuccess();
         }
@@ -87,6 +96,14 @@ export default function CheckoutPage() {
         </h1>
         <p className="mt-3 text-sm leading-relaxed text-achira-blue/65 dark:text-achira-cream/60">
           Захиалга баталгаажлаа. Бүтээгдэхүүн бэлдэж эхэлнэ.
+          {smsSent && (
+            <>
+              <br />
+              <span className="mt-2 inline-block">
+                Баталгаажуулалтын SMS таны утас руу илгээгдлээ.
+              </span>
+            </>
+          )}
         </p>
         {paymentRef && (
           <p className="mt-4 rounded-2xl border border-achira-blue/12 bg-achira-paper/60 px-4 py-3 font-mono text-sm text-achira-blue-dark dark:border-achira-cream/10 dark:bg-achira-blue/10 dark:text-achira-cream">
@@ -235,6 +252,39 @@ export default function CheckoutPage() {
     );
   }
 
+  async function handleApplyPromo() {
+    if (!promoCode.trim()) return;
+    setPromoChecking(true);
+    setPromoMessage(null);
+    setError(null);
+    try {
+      const res = await fetch(apiUrl("/api/promo/validate/"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: promoCode.trim(), lines }),
+      });
+      const data = (await res.json()) as {
+        error?: string;
+        discountMnt?: number;
+        totalMnt?: number;
+      };
+      if (!res.ok) {
+        setPromoDiscountMnt(0);
+        setPromoMessage(data.error ?? "Промо код буруу байна.");
+        return;
+      }
+      setPromoDiscountMnt(data.discountMnt ?? 0);
+      setPromoMessage(
+        `-${formatMnt(data.discountMnt ?? 0)} хөнгөлөлт хэрэглэгдлээ.`,
+      );
+      await hapticLight();
+    } catch {
+      setPromoMessage("Промо шалгахад алдаа гарлаа.");
+    } finally {
+      setPromoChecking(false);
+    }
+  }
+
   async function handlePay(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim() || !phone.trim() || submitting) return;
@@ -244,7 +294,7 @@ export default function CheckoutPage() {
     await hapticLight();
 
     try {
-      const res = await fetch("/api/checkout/", {
+      const res = await fetch(apiUrl("/api/checkout/"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -253,6 +303,7 @@ export default function CheckoutPage() {
           customerPhone: phone.trim(),
           paymentMethod: tab,
           userId: user?.id ?? null,
+          promoCode: promoDiscountMnt > 0 ? promoCode.trim() : undefined,
         }),
       });
 
@@ -260,6 +311,7 @@ export default function CheckoutPage() {
         error?: string;
         orderId?: string;
         paymentRef?: string;
+        totalMnt?: number;
         qpay?: QPayPayload;
       };
 
@@ -271,7 +323,9 @@ export default function CheckoutPage() {
 
       setOrderId(data.orderId);
       setPaymentRef(data.paymentRef ?? null);
-      setOrderTotalMnt(totalMnt);
+      setOrderTotalMnt(
+        typeof data.totalMnt === "number" ? data.totalMnt : payableMnt,
+      );
       if (data.qpay) setQpay(data.qpay);
       clear();
       router.refresh();
@@ -344,16 +398,65 @@ export default function CheckoutPage() {
               </li>
             ))}
           </ul>
-          <div className="mt-6 flex items-center justify-between border-t border-achira-blue/10 pt-4 dark:border-achira-cream/10">
-            <span className="text-sm text-achira-blue/60 dark:text-achira-cream/55">Нийт</span>
-            <span className="text-lg font-semibold text-achira-blue-dark dark:text-achira-cream">
-              {formatMnt(totalMnt)}
-            </span>
+          <div className="mt-6 space-y-2 border-t border-achira-blue/10 pt-4 dark:border-achira-cream/10">
+            <div className="flex items-center justify-between text-sm text-achira-blue/60 dark:text-achira-cream/55">
+              <span>Дэд дүн</span>
+              <span>{formatMnt(totalMnt)}</span>
+            </div>
+            {promoDiscountMnt > 0 && (
+              <div className="flex items-center justify-between text-sm text-achira-burgundy dark:text-achira-gold">
+                <span>Хөнгөлөлт</span>
+                <span>-{formatMnt(promoDiscountMnt)}</span>
+              </div>
+            )}
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-achira-blue/60 dark:text-achira-cream/55">
+                Төлөх дүн
+              </span>
+              <span className="text-lg font-semibold text-achira-blue-dark dark:text-achira-cream">
+                {formatMnt(payableMnt)}
+              </span>
+            </div>
           </div>
         </section>
 
         <section className="rounded-3xl border border-achira-blue/10 bg-white/70 p-5 dark:border-achira-cream/10 dark:bg-achira-navy/40 sm:p-6">
           <h2 className="text-[10px] font-medium uppercase tracking-[0.28em] text-achira-blue/55 dark:text-achira-cream/50">
+            Промо код
+          </h2>
+          <div className="mt-3 flex gap-2">
+            <input
+              value={promoCode}
+              onChange={(e) => {
+                setPromoCode(e.target.value.toUpperCase());
+                setPromoDiscountMnt(0);
+                setPromoMessage(null);
+              }}
+              placeholder=""
+              className="min-w-0 flex-1 rounded-2xl border border-achira-blue/12 bg-achira-cream/50 px-4 py-3 text-sm uppercase outline-none dark:border-achira-cream/12 dark:bg-achira-navy/60 dark:text-achira-cream"
+            />
+            <button
+              type="button"
+              onClick={() => void handleApplyPromo()}
+              disabled={promoChecking || !promoCode.trim()}
+              className="admin-btn-secondary shrink-0 !px-4"
+            >
+              {promoChecking ? "..." : "Шалгах"}
+            </button>
+          </div>
+          {promoMessage && (
+            <p
+              className={`mt-2 text-xs ${
+                promoDiscountMnt > 0
+                  ? "text-emerald-700 dark:text-emerald-300"
+                  : "text-rose-600 dark:text-rose-400"
+              }`}
+            >
+              {promoMessage}
+            </p>
+          )}
+
+          <h2 className="mt-6 text-[10px] font-medium uppercase tracking-[0.28em] text-achira-blue/55 dark:text-achira-cream/50">
             Холбоо барих
           </h2>
           <div className="mt-4 space-y-3">

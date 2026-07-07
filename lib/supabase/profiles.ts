@@ -1,4 +1,5 @@
 import { createSupabaseBrowserClient } from "./client";
+import { isBootstrapAdminPhone } from "@/lib/auth/bootstrap-admins";
 
 export type UserProfile = {
   id: string;
@@ -35,10 +36,12 @@ export async function ensureUserProfile(
   const supabase = createSupabaseBrowserClient();
   if (!supabase) return null;
 
+  const role = isBootstrapAdminPhone(phone) ? "admin" : "customer";
+
   const { data, error } = await supabase
     .from("profiles")
     .upsert(
-      { id: userId, full_name: fullName, phone, role: "customer" },
+      { id: userId, full_name: fullName, phone, role },
       { onConflict: "id" },
     )
     .select("id, full_name, phone, role")
@@ -47,6 +50,35 @@ export async function ensureUserProfile(
   if (error) {
     console.warn("[supabase] ensureUserProfile:", error.message);
     return null;
+  }
+
+  return data as UserProfile;
+}
+
+export async function syncBootstrapAdminRole(
+  profile: UserProfile,
+): Promise<UserProfile> {
+  if (
+    profile.role === "admin" ||
+    !profile.phone ||
+    !isBootstrapAdminPhone(profile.phone)
+  ) {
+    return profile;
+  }
+
+  const supabase = createSupabaseBrowserClient();
+  if (!supabase) return profile;
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .update({ role: "admin", updated_at: new Date().toISOString() })
+    .eq("id", profile.id)
+    .select("id, full_name, phone, role")
+    .single();
+
+  if (error || !data) {
+    console.warn("[supabase] syncBootstrapAdminRole:", error?.message);
+    return profile;
   }
 
   return data as UserProfile;

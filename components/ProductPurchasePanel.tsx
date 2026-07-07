@@ -13,11 +13,13 @@ export function ProductPurchasePanel({
   name,
   priceMnt,
   imageUrl,
+  inStock = true,
 }: {
   slug: string;
   name: string;
   priceMnt: number;
   imageUrl: string;
+  inStock?: boolean;
 }) {
   const [qty, setQty] = useState(1);
   const total = useMemo(() => priceMnt * qty, [priceMnt, qty]);
@@ -39,8 +41,13 @@ export function ProductPurchasePanel({
                 {formatMnt(total)}
               </span>
             </p>
+            {!inStock && (
+              <p className="mt-3 text-sm text-rose-600 dark:text-rose-400">
+                Одоогоор нөөцгүй. Дэлгүүрт түр харагдана.
+              </p>
+            )}
           </div>
-          <QuantityPicker value={qty} onChange={setQty} />
+          <QuantityPicker value={qty} onChange={setQty} disabled={!inStock} />
         </div>
 
         <div className="mt-5 hidden sm:block">
@@ -50,6 +57,7 @@ export function ProductPurchasePanel({
             priceMnt={priceMnt}
             imageUrl={imageUrl}
             qty={qty}
+            disabled={!inStock}
           />
         </div>
       </div>
@@ -63,7 +71,7 @@ export function ProductPurchasePanel({
         <div className="pointer-events-auto px-4 pb-[max(5.5rem,calc(0.75rem+env(safe-area-inset-bottom)+4.5rem))]">
           <div className="mx-auto max-w-md rounded-2xl border border-achira-blue/12 bg-achira-paper/95 p-2 shadow-[0_-8px_32px_rgba(30,79,150,0.12)] backdrop-blur-md dark:border-achira-cream/10 dark:bg-achira-navy/90 dark:shadow-[0_-8px_32px_rgba(0,0,0,0.35)]">
             <div className="flex items-center gap-2">
-              <QuantityPicker value={qty} onChange={setQty} />
+              <QuantityPicker value={qty} onChange={setQty} disabled={!inStock} />
               <div className="flex-1">
                 <AddToCartButton
                   slug={slug}
@@ -71,6 +79,7 @@ export function ProductPurchasePanel({
                   priceMnt={priceMnt}
                   imageUrl={imageUrl}
                   qty={qty}
+                  disabled={!inStock}
                 />
               </div>
             </div>

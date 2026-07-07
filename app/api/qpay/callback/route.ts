@@ -1,4 +1,5 @@
-import { markOrderPaidByQPayInvoice } from "@/lib/qpay/orders";
+import { finalizeAppointmentPayment } from "@/lib/appointments/payment";
+import { finalizeOrderPayment } from "@/lib/qpay/orders";
 import {
   checkQPayInvoicePayment,
   isInvoicePaid,
@@ -23,7 +24,16 @@ export async function POST(req: Request) {
       return new Response("NOT_PAID", { status: 200 });
     }
 
-    await markOrderPaidByQPayInvoice(invoiceId);
+    const orderResult = await finalizeOrderPayment({ invoiceId });
+    if (orderResult.ok) {
+      return new Response("SUCCESS", { status: 200 });
+    }
+
+    const appointmentResult = await finalizeAppointmentPayment({ invoiceId });
+    if (!appointmentResult.ok) {
+      return new Response("NOT_FOUND", { status: 404 });
+    }
+
     return new Response("SUCCESS", { status: 200 });
   } catch (err) {
     console.error("[qpay/callback]", err);

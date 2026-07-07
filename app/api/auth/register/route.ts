@@ -4,6 +4,7 @@ import {
   phoneToAuthEmail,
   toE164Phone,
 } from "@/lib/auth/phone";
+import { isBootstrapAdminPhone } from "@/lib/auth/bootstrap-admins";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getTwilioClient, getVerifyServiceSid } from "@/lib/twilio/server";
 
@@ -96,7 +97,7 @@ export async function POST(req: Request) {
         id: userId,
         full_name: name,
         phone: local,
-        role: "customer",
+        role: isBootstrapAdminPhone(local) ? "admin" : "customer",
         updated_at: new Date().toISOString(),
       },
       { onConflict: "id" },

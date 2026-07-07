@@ -15,6 +15,7 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import {
   ensureUserProfile,
   fetchUserProfile,
+  syncBootstrapAdminRole,
   type UserProfile,
 } from "@/lib/supabase/profiles";
 
@@ -72,6 +73,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const phone =
         (nextUser.user_metadata?.phone as string | undefined) ?? "";
       p = await ensureUserProfile(nextUser.id, name, phone);
+    }
+    if (p) {
+      p = await syncBootstrapAdminRole(p);
     }
     setProfile(p);
   }, []);

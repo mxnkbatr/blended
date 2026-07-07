@@ -22,6 +22,15 @@ create table if not exists public.barbers (
   image_url text,
   bio text,
   active boolean not null default true,
+  schedule jsonb not null default '{
+    "0": {"off": true, "start": 10, "end": 22},
+    "1": {"off": false, "start": 10, "end": 22},
+    "2": {"off": false, "start": 10, "end": 22},
+    "3": {"off": false, "start": 10, "end": 22},
+    "4": {"off": false, "start": 10, "end": 22},
+    "5": {"off": false, "start": 10, "end": 22},
+    "6": {"off": false, "start": 10, "end": 22}
+  }'::jsonb,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -34,6 +43,7 @@ create table if not exists public.products (
   price_mnt integer not null check (price_mnt >= 0),
   image_url text,
   in_stock boolean not null default true,
+  always_visible boolean not null default true,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -66,7 +76,7 @@ create policy "barbers_public_read"
 drop policy if exists "products_public_read" on public.products;
 create policy "products_public_read"
   on public.products for select
-  using (in_stock = true);
+  using (in_stock = true or always_visible = true);
 
 drop policy if exists "appointments_public_insert" on public.appointments;
 create policy "appointments_public_insert"
