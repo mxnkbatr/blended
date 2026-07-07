@@ -1,5 +1,6 @@
 import { BookingSystem } from "@/components/BookingSystem";
 import { CalendarDays, Clock, MapPin } from "lucide-react";
+import Link from "next/link";
 
 export const metadata = {
   title: "Цаг авах",
@@ -15,6 +16,7 @@ const infoCards = [
   {
     label: "Хаяг",
     value: "120k Regis Place, 3 давхар",
+    href: "https://maps.app.goo.gl/2DrMFTwCAZpE5Ln67?g_st=ii",
     Icon: MapPin,
   },
   {
@@ -47,7 +49,7 @@ export default function BookingPage() {
         </header>
 
         <div className="mx-auto mt-8 hidden max-w-3xl gap-3 md:grid md:grid-cols-3 md:gap-4">
-          {infoCards.map(({ label, value, Icon }) => (
+          {infoCards.map(({ label, value, href, Icon }) => (
             <div
               key={label}
               className="rounded-2xl border border-achira-blue/12 bg-achira-paper/60 px-4 py-4 text-left backdrop-blur-sm dark:border-achira-cream/10 dark:bg-achira-blue/10"
@@ -61,9 +63,20 @@ export default function BookingPage() {
                   {label}
                 </p>
               </div>
-              <p className="mt-2 text-sm leading-snug text-achira-blue-dark dark:text-achira-cream">
-                {value}
-              </p>
+              {href ? (
+                <Link
+                  className="mt-2 inline-flex text-sm leading-snug text-achira-blue-dark underline decoration-achira-blue/25 underline-offset-4 transition-colors hover:text-achira-burgundy hover:decoration-achira-burgundy/40 dark:text-achira-cream dark:decoration-achira-cream/25 dark:hover:text-achira-cream"
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {value}
+                </Link>
+              ) : (
+                <p className="mt-2 text-sm leading-snug text-achira-blue-dark dark:text-achira-cream">
+                  {value}
+                </p>
+              )}
             </div>
           ))}
         </div>

@@ -17,7 +17,14 @@ export function SiteFooter() {
               Шуурхай үйлчилгээ, найдвартай захиалга.
             </p>
             <div className="mt-5 space-y-1 text-sm text-achira-blue/65 dark:text-achira-cream/60">
-              <p>120k Regis Place 3rd floor, Ulaanbaatar</p>
+              <a
+                className="block transition-colors hover:text-achira-burgundy dark:hover:text-achira-cream"
+                href="https://maps.app.goo.gl/2DrMFTwCAZpE5Ln67?g_st=ii"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                120k Regis Place 3rd floor, Ulaanbaatar
+              </a>
               <a
                 className="block transition-colors hover:text-achira-burgundy dark:hover:text-achira-cream"
                 href="tel:77757747"

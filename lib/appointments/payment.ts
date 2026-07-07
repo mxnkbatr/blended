@@ -4,7 +4,11 @@ import {
 } from "@/lib/barbers/schedule";
 import { normalizeMongoliaPhone } from "@/lib/auth/phone";
 import { isQPayConfigured } from "@/lib/qpay/config";
-import { createQPayInvoice } from "@/lib/qpay/server";
+import {
+  checkQPayInvoicePayment,
+  createQPayInvoice,
+  isInvoicePaid,
+} from "@/lib/qpay/server";
 import {
   incrementPromoUsage,
   validateBookingPromo,
@@ -15,7 +19,7 @@ import {
   resolveBookingPriceMnt,
 } from "@/lib/appointments/pricing";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { buildAppointmentOwnerSms, sendSms } from "@/lib/twilio/sms";
+import { buildAppointmentOwnerSms, buildAppointmentCustomerSms, sendSms } from "@/lib/twilio/sms";
 
 export type CreateAppointmentCheckoutInput = {
   barberId: string;
@@ -39,6 +43,7 @@ type AppointmentPaymentRow = {
   qpay_invoice_id: string | null;
   qpay_sender_invoice_no: string | null;
   payment_sms_sent_at: string | null;
+  customer_sms_sent_at: string | null;
 };
 
 function toMongoliaDateTime(date: string, time: string): Date {
@@ -49,20 +54,30 @@ function getNotifyPhone(): string {
   return process.env.APPOINTMENT_NOTIFY_PHONE ?? "88668612";
 }
 
+const AWAITING_PAYMENT_HOLD_MS = 15 * 60 * 1000;
+
+function blocksSlot(status: string, createdAt: string): boolean {
+  if (status === "CANCELLED") return false;
+  if (status !== "AWAITING_PAYMENT") return true;
+  return Date.now() - new Date(createdAt).getTime() < AWAITING_PAYMENT_HOLD_MS;
+}
+
 async function isSlotTaken(
   barberId: string,
   startsAt: Date,
 ): Promise<boolean> {
   const supabase = createSupabaseAdminClient();
-  const { count, error } = await supabase
+  const { data, error } = await supabase
     .from("appointments")
-    .select("id", { count: "exact", head: true })
+    .select("id, status, created_at")
     .eq("barber_id", barberId)
     .eq("starts_at", startsAt.toISOString())
     .neq("status", "CANCELLED");
 
   if (error) return true;
-  return (count ?? 0) > 0;
+  return (data ?? []).some((row) =>
+    blocksSlot(row.status, row.created_at as string),
+  );
 }
 
 async function fetchAppointmentByInvoice(
@@ -72,7 +87,7 @@ async function fetchAppointmentByInvoice(
   const { data, error } = await supabase
     .from("appointments")
     .select(
-      "id, status, barber_id, customer_name, customer_phone, starts_at, ends_at, price_mnt, promo_id, qpay_invoice_id, qpay_sender_invoice_no, payment_sms_sent_at",
+      "id, status, barber_id, customer_name, customer_phone, starts_at, ends_at, price_mnt, promo_id, qpay_invoice_id, qpay_sender_invoice_no, payment_sms_sent_at, customer_sms_sent_at",
     )
     .eq("qpay_invoice_id", invoiceId)
     .maybeSingle();
@@ -88,7 +103,7 @@ async function fetchAppointmentById(
   const { data, error } = await supabase
     .from("appointments")
     .select(
-      "id, status, barber_id, customer_name, customer_phone, starts_at, ends_at, price_mnt, promo_id, qpay_invoice_id, qpay_sender_invoice_no, payment_sms_sent_at",
+      "id, status, barber_id, customer_name, customer_phone, starts_at, ends_at, price_mnt, promo_id, qpay_invoice_id, qpay_sender_invoice_no, payment_sms_sent_at, customer_sms_sent_at",
     )
     .eq("id", appointmentId)
     .maybeSingle();
@@ -256,6 +271,44 @@ export async function getAppointmentPaymentState(appointmentId: string) {
   return data;
 }
 
+export async function cancelAwaitingAppointment(
+  appointmentId: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const supabase = createSupabaseAdminClient();
+
+  const { data, error: fetchError } = await supabase
+    .from("appointments")
+    .select("id, status")
+    .eq("id", appointmentId)
+    .maybeSingle();
+
+  if (fetchError || !data) {
+    return { ok: false, error: "Захиалга олдсонгүй." };
+  }
+
+  if (data.status === "CANCELLED") {
+    return { ok: true };
+  }
+
+  if (data.status !== "AWAITING_PAYMENT") {
+    return { ok: false, error: "Төлсөн захиалгыг цуцлах боломжгүй." };
+  }
+
+  const { error } = await supabase
+    .from("appointments")
+    .update({
+      status: "CANCELLED",
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", appointmentId);
+
+  if (error) {
+    return { ok: false, error: error.message };
+  }
+
+  return { ok: true };
+}
+
 export async function finalizeAppointmentPayment(input: {
   appointmentId?: string;
   invoiceId?: string;
@@ -264,6 +317,7 @@ export async function finalizeAppointmentPayment(input: {
   appointmentId?: string;
   paid?: boolean;
   smsSent?: boolean;
+  customerSmsSent?: boolean;
 }> {
   const appointment = input.invoiceId
     ? await fetchAppointmentByInvoice(input.invoiceId)
@@ -273,9 +327,18 @@ export async function finalizeAppointmentPayment(input: {
 
   if (!appointment) return { ok: false };
 
-  const wasPaid = appointment.status !== "AWAITING_PAYMENT";
+  const awaitingPayment = appointment.status === "AWAITING_PAYMENT";
 
-  if (!wasPaid) {
+  if (awaitingPayment) {
+    if (!appointment.qpay_invoice_id) {
+      return { ok: false, appointmentId: appointment.id, paid: false };
+    }
+
+    const check = await checkQPayInvoicePayment(appointment.qpay_invoice_id);
+    if (!isInvoicePaid(check)) {
+      return { ok: true, appointmentId: appointment.id, paid: false };
+    }
+
     const supabase = createSupabaseAdminClient();
     const { error } = await supabase
       .from("appointments")
@@ -283,7 +346,8 @@ export async function finalizeAppointmentPayment(input: {
         status: "PENDING",
         updated_at: new Date().toISOString(),
       })
-      .eq("id", appointment.id);
+      .eq("id", appointment.id)
+      .eq("status", "AWAITING_PAYMENT");
 
     if (error) return { ok: false, appointmentId: appointment.id };
 
@@ -292,33 +356,63 @@ export async function finalizeAppointmentPayment(input: {
     }
   }
 
-  let smsSent = Boolean(appointment.payment_sms_sent_at);
+  const supabase = createSupabaseAdminClient();
+  const { data: barber } = await supabase
+    .from("barbers")
+    .select("name")
+    .eq("id", appointment.barber_id)
+    .maybeSingle();
 
-  if (!smsSent) {
-    const { data: barber } = await createSupabaseAdminClient()
-      .from("barbers")
-      .select("name")
-      .eq("id", appointment.barber_id)
-      .maybeSingle();
+  const barberName = barber?.name ?? appointment.barber_id;
+  const startsAt = new Date(appointment.starts_at);
+  const endsAt = new Date(appointment.ends_at);
 
-    const smsBody = buildAppointmentOwnerSms({
-      barberName: barber?.name ?? appointment.barber_id,
-      startsAt: new Date(appointment.starts_at),
-      endsAt: new Date(appointment.ends_at),
+  let ownerSmsSent = Boolean(appointment.payment_sms_sent_at);
+  if (!ownerSmsSent) {
+    const ownerBody = buildAppointmentOwnerSms({
+      barberName,
+      startsAt,
+      endsAt,
       customerName: appointment.customer_name,
       customerPhone: appointment.customer_phone,
     });
 
-    const smsResult = await sendSms(getNotifyPhone(), smsBody);
-    if (smsResult.ok) {
-      await createSupabaseAdminClient()
+    const ownerResult = await sendSms(getNotifyPhone(), ownerBody);
+    if (ownerResult.ok) {
+      await supabase
         .from("appointments")
         .update({
           payment_sms_sent_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         })
         .eq("id", appointment.id);
-      smsSent = true;
+      ownerSmsSent = true;
+    }
+  }
+
+  let customerSmsSent = Boolean(appointment.customer_sms_sent_at);
+  if (!customerSmsSent) {
+    const customerBody = buildAppointmentCustomerSms({
+      customerName: appointment.customer_name,
+      barberName,
+      startsAt,
+      endsAt,
+      paymentRef: appointment.qpay_sender_invoice_no,
+    });
+
+    const customerResult = await sendSms(
+      appointment.customer_phone,
+      customerBody,
+    );
+    if (customerResult.ok) {
+      await supabase
+        .from("appointments")
+        .update({
+          customer_sms_sent_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", appointment.id);
+      customerSmsSent = true;
     }
   }
 
@@ -326,6 +420,7 @@ export async function finalizeAppointmentPayment(input: {
     ok: true,
     appointmentId: appointment.id,
     paid: true,
-    smsSent,
+    smsSent: ownerSmsSent,
+    customerSmsSent,
   };
 }

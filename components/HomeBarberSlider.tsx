@@ -7,6 +7,10 @@ import { useBarbers } from "@/hooks/useBarbers";
 
 export function HomeBarberSlider() {
   const { barbers } = useBarbers();
+  const displayBarbers =
+    barbers.length === 1
+      ? Array.from({ length: 7 }, () => barbers[0])
+      : barbers;
   return (
     <div className="mt-7 w-full text-left">
       <div className="mb-3 flex items-end justify-between gap-2 px-0.5">
@@ -34,9 +38,9 @@ export function HomeBarberSlider() {
         />
 
         <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto px-3 pb-1 pt-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {barbers.map((b) => (
+          {displayBarbers.map((b, i) => (
             <Link
-              key={b.id}
+              key={`${b.id}-${i}`}
               href="/booking"
               className="group/link w-[8.25rem] shrink-0 snap-start touch-manipulation sm:w-[8.75rem]"
             >

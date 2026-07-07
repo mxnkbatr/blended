@@ -13,12 +13,13 @@ const infoDesktop: {
 }[] = [
   {
     label: "Хаяг",
-    value: "120k Regis Place, 3 давхар, Улаанбаатар",
+    value: "Хан уул дүүрэг, 15р хороо, 10р байр ",
+    href: "https://maps.app.goo.gl/2DrMFTwCAZpE5Ln67?g_st=ii",
   },
   {
     label: "Утас",
-    value: "77757747",
-    href: "tel:77757747",
+    value: "88668612",
+    href: "tel:88668612",
   },
   {
     label: "Цагийн хуваарь",
@@ -47,7 +48,7 @@ export function Hero() {
         <AchiraLogo className="mb-6 h-44 w-44 sm:h-52 sm:w-52" priority />
         <AchiraWordmark size="hero" />
         <p className="mt-6 max-w-md text-sm leading-relaxed text-achira-blue/70 dark:text-achira-cream/65 sm:text-base">
-          Гар урлалын сэтгэлгээтэй babershop — уламжлалт техник, орчин үеийн
+          Гар урлалын сэтгэлгээтэй Hairstylist — уламжлалт техник, орчин үеийн
           загвар, өөрийн онцлог стиль.
         </p>
 

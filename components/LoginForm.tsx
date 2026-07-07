@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { validateMongoliaPhone } from "@/lib/auth/phone";
-import { sendSmsCode } from "@/lib/twilio/client";
 import { hapticLight } from "@/lib/haptics";
 
 type Mode = "signin" | "signup";
@@ -19,35 +18,9 @@ export function LoginForm({ defaultMode = "signin" }: LoginFormProps) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
-  const [code, setCode] = useState("");
-  const [otpSent, setOtpSent] = useState(false);
-  const [sendingCode, setSendingCode] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-
-  async function handleSendCode() {
-    setError(null);
-    setInfo(null);
-    const phoneError = validateMongoliaPhone(phone);
-    if (phoneError) {
-      setError(phoneError);
-      return;
-    }
-
-    setSendingCode(true);
-    await hapticLight();
-    const result = await sendSmsCode(phone.trim());
-    setSendingCode(false);
-
-    if (!result.ok) {
-      setError(result.error);
-      return;
-    }
-
-    setOtpSent(true);
-    setInfo("SMS код илгээгдлээ. Утсаа шалгана уу.");
-  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -64,23 +37,7 @@ export function LoginForm({ defaultMode = "signin" }: LoginFormProps) {
     await hapticLight();
 
     if (mode === "signup") {
-      if (!otpSent) {
-        setSubmitting(false);
-        setError("Эхлээд SMS код аваарай.");
-        return;
-      }
-      if (!code.trim()) {
-        setSubmitting(false);
-        setError("Баталгаажуулах код оруулна уу.");
-        return;
-      }
-
-      const result = await signUp(
-        phone.trim(),
-        password,
-        name.trim(),
-        code.trim(),
-      );
+      const result = await signUp(phone.trim(), password, name.trim());
       setSubmitting(false);
 
       if (result.error) {
@@ -91,8 +48,6 @@ export function LoginForm({ defaultMode = "signin" }: LoginFormProps) {
       if (!result.sessionCreated) {
         setInfo("Бүртгэл амжилттай. Нэвтэрнэ үү.");
         setMode("signin");
-        setOtpSent(false);
-        setCode("");
       }
       return;
     }
@@ -116,7 +71,7 @@ export function LoginForm({ defaultMode = "signin" }: LoginFormProps) {
       <p className="mt-2 text-sm text-achira-blue/65 dark:text-achira-cream/60">
         {mode === "signin"
           ? "Утасны дугаар, нууц үгээ оруулна уу."
-          : "Утасаа баталгаажуулж бүртгүүлнэ (Twilio SMS)."}
+          : "Утас, нууц үгээ оруулаад бүртгүүлнэ."}
       </p>
 
       <div className="mt-6 flex rounded-2xl border border-achira-blue/12 bg-achira-paper/50 p-1 dark:border-achira-cream/10 dark:bg-achira-blue/10">
@@ -128,8 +83,6 @@ export function LoginForm({ defaultMode = "signin" }: LoginFormProps) {
               setMode(m);
               setError(null);
               setInfo(null);
-              setOtpSent(false);
-              setCode("");
             }}
             className={`flex-1 rounded-xl py-2.5 text-[11px] font-semibold uppercase tracking-[0.2em] transition-colors ${
               mode === m
@@ -175,44 +128,14 @@ export function LoginForm({ defaultMode = "signin" }: LoginFormProps) {
                 value={phone}
                 onChange={(e) => {
                   setPhone(e.target.value.replace(/[^\d]/g, ""));
-                  setOtpSent(false);
                 }}
                 className="min-w-0 flex-1 bg-transparent px-4 py-3.5 text-base text-achira-ink outline-none dark:text-achira-cream"
                 placeholder="99112233"
                 autoComplete="tel"
               />
             </div>
-            {mode === "signup" && (
-              <button
-                type="button"
-                onClick={() => void handleSendCode()}
-                disabled={sendingCode}
-                className="shrink-0 rounded-2xl border border-achira-blue/15 bg-achira-blue/8 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-achira-blue-dark disabled:opacity-50 dark:border-achira-cream/15 dark:bg-achira-cream/10 dark:text-achira-cream"
-              >
-                {sendingCode ? "..." : otpSent ? "Дахин" : "Код"}
-              </button>
-            )}
           </div>
         </div>
-
-        {mode === "signup" && otpSent && (
-          <div>
-            <label className="text-[10px] font-medium uppercase tracking-[0.22em] text-achira-blue/55 dark:text-achira-cream/50">
-              SMS код
-            </label>
-            <input
-              required
-              type="text"
-              inputMode="numeric"
-              maxLength={6}
-              value={code}
-              onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-              className="mt-1.5 w-full rounded-2xl border border-achira-blue/12 bg-white/80 px-4 py-3.5 text-center text-lg tracking-[0.4em] text-achira-ink outline-none focus:border-achira-blue/30 dark:border-achira-cream/12 dark:bg-achira-navy/60 dark:text-achira-cream"
-              placeholder="••••••"
-              autoComplete="one-time-code"
-            />
-          </div>
-        )}
 
         <div>
           <label className="text-[10px] font-medium uppercase tracking-[0.22em] text-achira-blue/55 dark:text-achira-cream/50">

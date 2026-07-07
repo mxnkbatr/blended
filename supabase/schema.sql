@@ -5,6 +5,7 @@ create extension if not exists "pgcrypto";
 
 do $$ begin
   create type appointment_status as enum (
+    'AWAITING_PAYMENT',
     'PENDING',
     'CONFIRMED',
     'CANCELLED',

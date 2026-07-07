@@ -324,7 +324,7 @@ export default function BookingScreen() {
               <Pressable
                 onPress={async () => {
                   await impactLight();
-                  Linking.openURL('tel:77757747');
+                  Linking.openURL('tel:88668612');
                 }}
                 style={({ pressed }) => [
                   styles.successBtnSecondary,

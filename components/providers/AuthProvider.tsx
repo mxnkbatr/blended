@@ -31,12 +31,7 @@ type AuthContextValue = {
   isAdmin: boolean;
   loading: boolean;
   signIn: (phone: string, password: string) => Promise<AuthResult>;
-  signUp: (
-    phone: string,
-    password: string,
-    name: string,
-    code: string,
-  ) => Promise<AuthResult>;
+  signUp: (phone: string, password: string, name: string) => Promise<AuthResult>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 };
@@ -133,12 +128,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [loadProfile]);
 
   const signUp = useCallback(
-    async (phone: string, password: string, name: string, code: string) => {
+    async (phone: string, password: string, name: string) => {
       try {
         const res = await fetch(`${getApiBase()}/api/auth/register/`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ phone, password, name, code }),
+          body: JSON.stringify({ phone, password, name }),
         });
         const data = (await res.json()) as { error?: string };
 

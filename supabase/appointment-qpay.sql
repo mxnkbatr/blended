@@ -1,18 +1,27 @@
 -- QPay payment fields for appointments + AWAITING_PAYMENT status
 
 do $$
+declare
+  enum_name text;
 begin
-  if exists (select 1 from pg_type where typname = 'appointment_status') then
-    if not exists (
-      select 1
-      from pg_enum e
-      join pg_type t on e.enumtypid = t.oid
-      where t.typname = 'appointment_status'
-        and e.enumlabel = 'AWAITING_PAYMENT'
-    ) then
-      alter type appointment_status add value 'AWAITING_PAYMENT';
+  foreach enum_name in array array['appointment_status', 'AppointmentStatus']
+  loop
+    if exists (select 1 from pg_type where typname = enum_name) then
+      if not exists (
+        select 1
+        from pg_enum e
+        join pg_type t on e.enumtypid = t.oid
+        where t.typname = enum_name
+          and e.enumlabel = 'AWAITING_PAYMENT'
+      ) then
+        execute format(
+          'alter type %I add value %L',
+          enum_name,
+          'AWAITING_PAYMENT'
+        );
+      end if;
     end if;
-  end if;
+  end loop;
 end $$;
 
 alter table public.appointments
@@ -22,7 +31,8 @@ alter table public.appointments
   add column if not exists promo_id uuid references public.promo_codes (id) on delete set null,
   add column if not exists qpay_invoice_id text,
   add column if not exists qpay_sender_invoice_no text,
-  add column if not exists payment_sms_sent_at timestamptz;
+  add column if not exists payment_sms_sent_at timestamptz,
+  add column if not exists customer_sms_sent_at timestamptz;
 
 create index if not exists appointments_qpay_invoice_idx
   on public.appointments (qpay_invoice_id)

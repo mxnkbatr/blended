@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { CalendarDays, CheckCircle2, ChevronRight, Clock, Loader2, Scissors, User } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useBarbers } from "@/hooks/useBarbers";
 import {
   buildSlotsForDate,
@@ -14,6 +14,8 @@ import {
 } from "@/lib/supabase/queries";
 import { hapticLight, hapticSuccess } from "@/lib/haptics";
 import { apiUrl } from "@/lib/api-base";
+import { cancelPendingAppointmentClient } from "@/lib/appointments/cancel-pending-client";
+import { useAuth } from "@/components/providers/AuthProvider";
 
 import {
   DEFAULT_BOOKING_PRICE_MNT,
@@ -148,6 +150,7 @@ function Stepper({ step }: { step: 1 | 2 | 3 }) {
 
 export function BookingSystem() {
   const { barbers } = useBarbers();
+  const { profile } = useAuth();
   const [barberId, setBarberId] = useState<string | null>(null);
   const [date, setDate] = useState(() => toISODate(new Date()));
   const [time, setTime] = useState<string | null>(null);
@@ -162,12 +165,17 @@ export function BookingSystem() {
   const [paymentRef, setPaymentRef] = useState<string | null>(null);
   const [totalMnt, setTotalMnt] = useState(DEFAULT_BOOKING_PRICE_MNT);
   const [polling, setPolling] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
   const [bookedTimes, setBookedTimes] = useState<string[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
 
   const daySectionRef = useRef<HTMLDivElement | null>(null);
   const timeSectionRef = useRef<HTMLDivElement | null>(null);
   const formSectionRef = useRef<HTMLDivElement | null>(null);
+  const paymentTopRef = useRef<HTMLDivElement | null>(null);
+  const appointmentIdRef = useRef<string | null>(null);
+  const submittedRef = useRef(false);
+  const profilePrefilledRef = useRef(false);
 
   const selectedBarber = barbers.find((b) => b.id === barberId);
   const bookingPriceMnt =
@@ -195,6 +203,30 @@ export function BookingSystem() {
   }, []);
 
   const step: 1 | 2 | 3 = !barberId ? 1 : !time ? 2 : 3;
+
+  useEffect(() => {
+    if (profilePrefilledRef.current || !profile) return;
+    if (profile.full_name) setName(profile.full_name);
+    if (profile.phone) setPhone(profile.phone);
+    profilePrefilledRef.current = true;
+  }, [profile]);
+
+  useEffect(() => {
+    appointmentIdRef.current = appointmentId;
+  }, [appointmentId]);
+
+  useEffect(() => {
+    submittedRef.current = submitted;
+  }, [submitted]);
+
+  useEffect(() => {
+    return () => {
+      const id = appointmentIdRef.current;
+      if (id && !submittedRef.current) {
+        cancelPendingAppointmentClient(id);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (!selectedBarber) return;
@@ -227,6 +259,23 @@ export function BookingSystem() {
     };
   }, [barberId, date]);
 
+  const refreshBookedSlots = useCallback(async () => {
+    if (!barberId) return;
+    setLoadingSlots(true);
+    const times = await fetchBookedTimes(barberId, date);
+    setBookedTimes(times);
+    setLoadingSlots(false);
+  }, [barberId, date]);
+
+  useEffect(() => {
+    if (!appointmentId || !qpay || submitted) return;
+
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    window.setTimeout(() => {
+      paymentTopRef.current?.scrollIntoView({ behavior: "auto", block: "start" });
+    }, 0);
+  }, [appointmentId, qpay, submitted]);
+
   useEffect(() => {
     setTotalMnt(bookingPriceMnt);
   }, [bookingPriceMnt]);
@@ -247,6 +296,9 @@ export function BookingSystem() {
           setPolling(false);
           await hapticSuccess();
           setSubmitted(true);
+          if (barberId) {
+            void refreshBookedSlots();
+          }
         }
       } catch {
         /* retry */
@@ -260,7 +312,7 @@ export function BookingSystem() {
       window.clearInterval(id);
       setPolling(false);
     };
-  }, [appointmentId, submitted]);
+  }, [appointmentId, submitted, barberId, refreshBookedSlots]);
 
   function isSlotUnavailable(slot: string): boolean {
     if (!barberId || !selectedBarber) return true;
@@ -298,11 +350,34 @@ export function BookingSystem() {
     setPaymentRef(null);
     setTotalMnt(DEFAULT_BOOKING_PRICE_MNT);
     setPolling(false);
+    setCancelling(false);
     setBarberId(null);
     setTime(null);
     setName("");
     setPhone("");
     setPromoCode("");
+  }
+
+  async function cancelPayment() {
+    if (!appointmentId || cancelling) return;
+
+    setCancelling(true);
+    setPolling(false);
+    const id = appointmentId;
+
+    try {
+      await fetch(apiUrl(`/api/appointments/?appointmentId=${id}`), {
+        method: "DELETE",
+      });
+    } catch {
+      /* best effort */
+    }
+
+    setAppointmentId(null);
+    setQpay(null);
+    setPaymentRef(null);
+    setCancelling(false);
+    await refreshBookedSlots();
   }
 
   async function handleConfirm(e: React.FormEvent) {
@@ -349,7 +424,6 @@ export function BookingSystem() {
     setQpay(result.qpay);
     setPaymentRef(result.paymentRef ?? null);
     setTotalMnt(result.totalMnt ?? bookingPriceMnt);
-    setBookedTimes((prev) => (prev.includes(time) ? prev : [...prev, time]));
   }
 
   if (appointmentId && qpay && !submitted && selectedBarber && time) {
@@ -360,30 +434,20 @@ export function BookingSystem() {
       : null;
 
     return (
-      <div className="mx-auto max-w-lg rounded-3xl border border-achira-blue/12 bg-achira-paper/70 p-7 shadow-[0_24px_80px_rgba(30,79,150,0.12)] dark:border-achira-cream/10 dark:bg-achira-blue/10 dark:shadow-[0_24px_80px_rgba(0,0,0,0.35)] md:max-w-xl md:p-10">
-        <p className="text-center text-[10px] uppercase tracking-[0.28em] text-achira-blue/55 dark:text-achira-cream/50">
-          QPay төлбөр
-        </p>
-        <h2 className="mt-2 text-center font-[family-name:var(--font-display)] text-2xl text-achira-blue-dark dark:text-achira-cream">
-          Төлбөр төлнө үү
-        </h2>
-        <p className="mt-3 text-center text-sm text-achira-blue/65 dark:text-achira-cream/60">
-          <span className="font-medium text-achira-blue-dark dark:text-achira-cream">
-            {selectedBarber.name}
-          </span>{" "}
-          — {date} {time}
-        </p>
-
-        <div className="mt-6 flex flex-col items-center rounded-2xl border border-achira-blue/10 bg-white/70 p-5 dark:border-achira-cream/10 dark:bg-achira-navy/40">
+      <div
+        ref={paymentTopRef}
+        className="mx-auto max-w-lg scroll-mt-20 rounded-3xl border border-achira-blue/12 bg-achira-paper/70 p-5 shadow-[0_24px_80px_rgba(30,79,150,0.12)] dark:border-achira-cream/10 dark:bg-achira-blue/10 dark:shadow-[0_24px_80px_rgba(0,0,0,0.35)] md:max-w-xl md:p-8"
+      >
+        <div className="flex flex-col items-center rounded-2xl border border-achira-blue/10 bg-white/70 p-4 dark:border-achira-cream/10 dark:bg-achira-navy/40">
           {qrSrc ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={qrSrc}
               alt="QPay QR"
-              className="h-52 w-52 rounded-2xl border border-achira-blue/10 bg-white p-2"
+              className="h-56 w-56 rounded-2xl border border-achira-blue/10 bg-white p-2"
             />
           ) : (
-            <div className="grid h-52 w-52 place-items-center rounded-2xl border border-dashed border-achira-blue/20 text-center text-xs text-achira-blue/50">
+            <div className="grid h-56 w-56 place-items-center rounded-2xl border border-dashed border-achira-blue/20 text-center text-xs text-achira-blue/50">
               QR ачааллаж байна...
             </div>
           )}
@@ -403,40 +467,54 @@ export function BookingSystem() {
               Төлбөр хүлээж байна...
             </p>
           )}
-
-          {qpay.urls.length > 0 && (
-            <ul className="mt-5 w-full space-y-2">
-              {qpay.urls.slice(0, 6).map((bank) => (
-                <li key={bank.link}>
-                  <a
-                    href={bank.link}
-                    className="flex items-center gap-3 rounded-2xl border border-achira-blue/10 px-3 py-2.5 text-sm text-achira-blue-dark transition-colors hover:bg-achira-blue/5 dark:border-achira-cream/10 dark:text-achira-cream dark:hover:bg-achira-cream/5"
-                  >
-                    {bank.logo ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={bank.logo} alt="" className="h-8 w-8 rounded-lg object-contain" />
-                    ) : (
-                      <span className="grid h-8 w-8 place-items-center rounded-lg bg-achira-blue/10 text-[10px] font-bold">
-                        {bank.name.slice(0, 2)}
-                      </span>
-                    )}
-                    <span>{bank.description || bank.name}</span>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          )}
         </div>
 
-        <p className="mt-5 text-center text-xs text-achira-blue/55 dark:text-achira-cream/50">
-          Төлбөр амжилттай болсны дараа захиалга баталгаажна.
+        <p className="mt-4 text-center text-[10px] uppercase tracking-[0.28em] text-achira-blue/55 dark:text-achira-cream/50">
+          QPay төлбөр
+        </p>
+        <h2 className="mt-2 text-center font-[family-name:var(--font-display)] text-2xl text-achira-blue-dark dark:text-achira-cream">
+          Төлбөр төлнө үү
+        </h2>
+        <p className="mt-2 text-center text-sm text-achira-blue/65 dark:text-achira-cream/60">
+          <span className="font-medium text-achira-blue-dark dark:text-achira-cream">
+            {selectedBarber.name}
+          </span>{" "}
+          — {date} {time}
+        </p>
+
+        {qpay.urls.length > 0 && (
+          <ul className="mt-5 max-h-48 space-y-2 overflow-y-auto">
+            {qpay.urls.slice(0, 6).map((bank) => (
+              <li key={bank.link}>
+                <a
+                  href={bank.link}
+                  className="flex items-center gap-3 rounded-2xl border border-achira-blue/10 px-3 py-2.5 text-sm text-achira-blue-dark transition-colors hover:bg-achira-blue/5 dark:border-achira-cream/10 dark:text-achira-cream dark:hover:bg-achira-cream/5"
+                >
+                  {bank.logo ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={bank.logo} alt="" className="h-8 w-8 rounded-lg object-contain" />
+                  ) : (
+                    <span className="grid h-8 w-8 place-items-center rounded-lg bg-achira-blue/10 text-[10px] font-bold">
+                      {bank.name.slice(0, 2)}
+                    </span>
+                  )}
+                  <span>{bank.description || bank.name}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <p className="mt-4 text-center text-xs text-achira-blue/55 dark:text-achira-cream/50">
+          Төлбөр амжилттай болсны дараа л захиалга баталгаажна.
         </p>
         <button
           type="button"
-          onClick={resetFlow}
-          className="mt-5 w-full text-center text-sm text-achira-blue/55 underline-offset-4 hover:underline dark:text-achira-cream/50"
+          onClick={() => void cancelPayment()}
+          disabled={cancelling}
+          className="mt-4 w-full text-center text-sm text-achira-blue/55 underline-offset-4 hover:underline disabled:opacity-50 dark:text-achira-cream/50"
         >
-          Цуцлах
+          {cancelling ? "Цуцлаж байна..." : "Төлбөр төлөхгүй буцах"}
         </button>
       </div>
     );
@@ -463,6 +541,12 @@ export function BookingSystem() {
           <span className="font-medium">{time}</span> цагт захиалга амжилттай
           баталгаажлаа.
         </p>
+        {phone.trim() && (
+          <p className="mt-3 text-xs leading-relaxed text-achira-blue/55 dark:text-achira-cream/50">
+            Баталгаажуулалтын SMS таны{" "}
+            <span className="font-medium">{phone}</span> дугаар руу илгээгдлээ.
+          </p>
+        )}
         <button
           type="button"
           onClick={resetFlow}

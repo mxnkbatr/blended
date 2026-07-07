@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CalendarDays, Home, ShoppingBag, Store, User } from "lucide-react";
+import { motion } from "framer-motion";
 import { useCart } from "@/components/providers/CartProvider";
 import { hapticLight, hapticMedium, hapticSelection } from "@/lib/haptics";
 
@@ -34,7 +35,7 @@ export function BottomDock() {
   return (
     <div className="fixed inset-x-0 bottom-0 z-50 md:hidden">
       <div
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-achira-cream via-achira-cream/55 to-transparent dark:from-achira-navy dark:via-achira-navy/55"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-achira-cream via-achira-cream/60 to-transparent dark:from-achira-navy dark:via-achira-navy/60"
         aria-hidden
       />
       <div className="relative px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
@@ -63,7 +64,7 @@ export function BottomDock() {
             </div>
           )}
           <nav
-            className="relative z-10 flex items-center justify-between gap-1 rounded-2xl border border-achira-gold/15 bg-achira-cream/88 px-1 py-1.5 shadow-[0_-10px_36px_rgba(21,58,112,0.10),0_1px_0_rgba(255,255,255,0.65)_inset] backdrop-blur-xl dark:border-achira-gold/10 dark:bg-achira-navy/78 dark:shadow-[0_-10px_40px_rgba(0,0,0,0.32)]"
+            className="relative z-10 flex items-center justify-between gap-1 rounded-2xl border border-achira-gold/15 bg-achira-cream/90 px-1 py-1.5 shadow-[0_-10px_40px_rgba(21,58,112,0.12),0_1px_0_rgba(255,255,255,0.65)_inset] backdrop-blur-xl backdrop-saturate-150 dark:border-achira-gold/10 dark:bg-achira-navy/80 dark:shadow-[0_-10px_46px_rgba(0,0,0,0.36)]"
             aria-label="Доод цэс"
           >
             {tabs.map(({ href, label, Icon }) => {
@@ -78,12 +79,25 @@ export function BottomDock() {
                   onClick={() => {
                     if (!active) void hapticSelection();
                   }}
-                  className={`flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-xl py-1.5 transition-colors active:scale-95 ${
+                  className={`relative flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-xl py-1.5 transition-colors active:scale-95 ${
                     active
                       ? "text-achira-blue dark:text-achira-cream"
                       : "text-achira-blue/50 hover:text-achira-blue/75 dark:text-achira-cream/50 dark:hover:text-achira-cream/75"
                   }`}
                 >
+                  {active && (
+                    <motion.span
+                      layoutId="bottom-dock-active"
+                      className="absolute inset-0 rounded-xl bg-achira-blue/7 dark:bg-achira-cream/10"
+                      transition={{
+                        type: "spring",
+                        stiffness: 520,
+                        damping: 36,
+                        mass: 0.7,
+                      }}
+                      aria-hidden
+                    />
+                  )}
                   <Icon
                     className="h-[17px] w-[17px] shrink-0"
                     strokeWidth={active ? 1.35 : 1.05}

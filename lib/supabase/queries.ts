@@ -141,7 +141,8 @@ export async function fetchBookedTimes(
     .eq("barber_id", barberId)
     .gte("starts_at", dayStart)
     .lte("starts_at", dayEnd)
-    .neq("status", "CANCELLED");
+    .neq("status", "CANCELLED")
+    .neq("status", "AWAITING_PAYMENT");
 
   if (error || !data) {
     console.warn("[supabase] fetchBookedTimes:", error?.message);

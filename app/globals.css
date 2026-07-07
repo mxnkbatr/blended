@@ -15,11 +15,31 @@
 
 html {
   -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
   padding-bottom: var(--keyboard-inset, 0px);
   transition: padding-bottom 0.2s ease;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  html,
+  body {
+    height: 100%;
+    overscroll-behavior-y: none;
+  }
+
+  body {
+    -webkit-overflow-scrolling: touch;
+    -webkit-touch-callout: none;
+  }
+
+  a,
+  button {
+    touch-action: manipulation;
+  }
 }
 
 @keyframes splash-load {

@@ -18,6 +18,8 @@ import { ThemeCapacitorSync } from "@/components/ThemeCapacitorSync";
 import { PushNotificationsInit } from "@/components/PushNotificationsInit";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { AuthGate } from "@/components/AuthGate";
+import { MobileShellLayoutGroup } from "@/components/MobileShellLayoutGroup";
+import { PageTransition } from "@/components/PageTransition";
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -37,6 +39,16 @@ export const metadata: Metadata = {
   },
   description:
     "Achira Artist — гар урлалын сэтгэлгээтэй babershop. Улаанбаатар, Regis Place. Цаг авах, дэлгүүр.",
+  applicationName: "Achira Artist",
+  themeColor: "#1e4f96",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Achira Artist",
+  },
+  formatDetection: {
+    telephone: false,
+  },
 };
 
 export const viewport: Viewport = {
@@ -53,7 +65,7 @@ export default function RootLayout({
   return (
     <html
       lang="mn"
-      className={`${playfair.variable} h-full scroll-smooth`}
+      className={`${playfair.variable} h-full`}
       suppressHydrationWarning
     >
       <body
@@ -75,7 +87,11 @@ export default function RootLayout({
                       <AuthGate>
                         <SiteHeader />
                         <AppHeader />
-                        <MobileAppChrome>{children}</MobileAppChrome>
+                        <MobileShellLayoutGroup>
+                          <MobileAppChrome>
+                            <PageTransition>{children}</PageTransition>
+                          </MobileAppChrome>
+                        </MobileShellLayoutGroup>
                         <BottomDock />
                       </AuthGate>
                     </MobileHomeScrollProvider>

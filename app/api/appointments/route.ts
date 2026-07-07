@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import {
+  cancelAwaitingAppointment,
   createAppointmentCheckout,
   finalizeAppointmentPayment,
   getAppointmentPaymentState,
@@ -89,10 +90,16 @@ export async function GET(req: Request) {
       const result = await finalizeAppointmentPayment({
         invoiceId: appointment.qpay_invoice_id,
       });
+      if (!result.paid) {
+        return NextResponse.json({
+          paid: false,
+          status: appointment.status,
+        });
+      }
       return NextResponse.json({
         paid: true,
         status: "PENDING",
-        smsSent: result.smsSent ?? false,
+        smsSent: result.customerSmsSent ?? false,
       });
     }
 
@@ -104,6 +111,31 @@ export async function GET(req: Request) {
     console.error("[appointments/check]", err);
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Шалгахад алдаа." },
+      { status: 500 },
+    );
+  }
+}
+
+export async function DELETE(req: Request) {
+  const appointmentId = new URL(req.url).searchParams.get("appointmentId");
+  if (!appointmentId) {
+    return NextResponse.json(
+      { error: "appointmentId шаардлагатай." },
+      { status: 400 },
+    );
+  }
+
+  try {
+    const result = await cancelAwaitingAppointment(appointmentId);
+    if (!result.ok) {
+      return NextResponse.json({ error: result.error }, { status: 400 });
+    }
+
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    console.error("[appointments/cancel]", err);
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "Цуцлахад алдаа." },
       { status: 500 },
     );
   }

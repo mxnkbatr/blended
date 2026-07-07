@@ -5,8 +5,11 @@ import { useRouter } from "next/navigation";
 import {
   CalendarDays,
   ChevronRight,
+  FileText,
   LayoutDashboard,
+  Lock,
   LogOut,
+  MapPin,
   Package,
   Settings,
   ShoppingBag,
@@ -14,6 +17,10 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/providers/AuthProvider";
+import {
+  fetchUserAppointmentsByPhone,
+  type UserAppointment,
+} from "@/lib/supabase/appointments";
 import { fetchUserOrders, type ShopOrder } from "@/lib/supabase/orders";
 import { formatPhoneDisplay } from "@/lib/auth/phone";
 import { hapticLight } from "@/lib/haptics";
@@ -35,6 +42,8 @@ export function ProfileClient() {
   const { user, loading, signOut, isAdmin, profile } = useAuth();
   const [orders, setOrders] = useState<ShopOrder[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
+  const [appointments, setAppointments] = useState<UserAppointment[]>([]);
+  const [appointmentsLoading, setAppointmentsLoading] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -56,6 +65,27 @@ export function ProfileClient() {
       cancelled = true;
     };
   }, [user]);
+
+  useEffect(() => {
+    if (!user || !profile?.phone) {
+      setAppointments([]);
+      return;
+    }
+
+    let cancelled = false;
+    setAppointmentsLoading(true);
+
+    void fetchUserAppointmentsByPhone(profile.phone).then((data) => {
+      if (!cancelled) {
+        setAppointments(data);
+        setAppointmentsLoading(false);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user, profile?.phone]);
 
   if (loading) {
     return (
@@ -188,7 +218,7 @@ export function ProfileClient() {
         <div className="mb-3 flex items-center gap-2">
           <Package className="h-4 w-4 text-achira-blue/60 dark:text-achira-cream/55" />
           <h2 className="text-sm font-semibold text-achira-blue-dark dark:text-achira-cream">
-            Захиалгын түүх
+            Дэлгүүрийн захиалга
           </h2>
         </div>
 
@@ -241,7 +271,77 @@ export function ProfileClient() {
         )}
       </section>
 
+      <section className="mt-6">
+        <div className="mb-3 flex items-center gap-2">
+          <CalendarDays className="h-4 w-4 text-achira-blue/60 dark:text-achira-cream/55" />
+          <h2 className="text-sm font-semibold text-achira-blue-dark dark:text-achira-cream">
+            Цаг авалтын түүх
+          </h2>
+        </div>
+
+        {appointmentsLoading ? (
+          <div className="space-y-3">
+            {[1, 2].map((i) => (
+              <div
+                key={i}
+                className="h-20 animate-pulse rounded-2xl bg-achira-blue/5 dark:bg-achira-cream/5"
+              />
+            ))}
+          </div>
+        ) : appointments.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-achira-blue/15 px-4 py-8 text-center text-sm text-achira-blue/55 dark:border-achira-cream/12 dark:text-achira-cream/50">
+            Одоогоор цаг авалт байхгүй.
+            <Link
+              href="/booking"
+              className="mt-3 block text-achira-blue underline-offset-4 hover:underline dark:text-achira-cream"
+            >
+              Цаг авах
+            </Link>
+          </div>
+        ) : (
+          <ul className="space-y-3">
+            {appointments.map((a) => (
+              <li
+                key={a.id}
+                className="rounded-2xl border border-achira-blue/10 bg-white/70 p-4 dark:border-achira-cream/10 dark:bg-achira-navy/40"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <p className="text-sm font-semibold text-achira-blue-dark dark:text-achira-cream">
+                      {formatDate(a.starts_at)}
+                    </p>
+                    <p className="mt-1 text-[11px] text-achira-blue/55 dark:text-achira-cream/50">
+                      Status:{" "}
+                      {a.status === "AWAITING_PAYMENT"
+                        ? "Төлбөр хүлээж"
+                        : a.status}
+                    </p>
+                  </div>
+                  <span className="rounded-full bg-achira-blue/8 px-2.5 py-1 text-[9px] font-medium uppercase tracking-wider text-achira-blue dark:bg-achira-cream/10 dark:text-achira-cream">
+                    {a.status === "AWAITING_PAYMENT" ? "QPay" : a.status}
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
       <div className="mt-4 rounded-2xl border border-achira-blue/10 bg-achira-paper/40 p-2 dark:border-achira-cream/8 dark:bg-achira-blue/8">
+        <a
+          href="https://maps.app.goo.gl/2DrMFTwCAZpE5Ln67?g_st=ii"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-between gap-3 rounded-xl px-3 py-3 active:scale-[0.99]"
+        >
+          <div className="flex items-center gap-3">
+            <MapPin className="h-5 w-5 text-achira-blue/70 dark:text-achira-cream/70" />
+            <span className="text-sm font-medium text-achira-blue-dark dark:text-achira-cream">
+              Хаяг (Maps)
+            </span>
+          </div>
+          <ChevronRight className="h-4 w-4 text-achira-blue/40" />
+        </a>
         <Link
           href="/settings"
           className="flex items-center justify-between gap-3 rounded-xl px-3 py-3 active:scale-[0.99]"
@@ -250,6 +350,30 @@ export function ProfileClient() {
             <Settings className="h-5 w-5 text-achira-blue/70 dark:text-achira-cream/70" />
             <span className="text-sm font-medium text-achira-blue-dark dark:text-achira-cream">
               Тохиргоо
+            </span>
+          </div>
+          <ChevronRight className="h-4 w-4 text-achira-blue/40" />
+        </Link>
+        <Link
+          href="/privacy"
+          className="flex items-center justify-between gap-3 rounded-xl px-3 py-3 active:scale-[0.99]"
+        >
+          <div className="flex items-center gap-3">
+            <Lock className="h-5 w-5 text-achira-blue/70 dark:text-achira-cream/70" />
+            <span className="text-sm font-medium text-achira-blue-dark dark:text-achira-cream">
+              Privacy
+            </span>
+          </div>
+          <ChevronRight className="h-4 w-4 text-achira-blue/40" />
+        </Link>
+        <Link
+          href="/terms"
+          className="flex items-center justify-between gap-3 rounded-xl px-3 py-3 active:scale-[0.99]"
+        >
+          <div className="flex items-center gap-3">
+            <FileText className="h-5 w-5 text-achira-blue/70 dark:text-achira-cream/70" />
+            <span className="text-sm font-medium text-achira-blue-dark dark:text-achira-cream">
+              Үйлчилгээний нөхцөл
             </span>
           </div>
           <ChevronRight className="h-4 w-4 text-achira-blue/40" />

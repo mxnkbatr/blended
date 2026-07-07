@@ -2,11 +2,9 @@ import { NextResponse } from "next/server";
 import {
   normalizeMongoliaPhone,
   phoneToAuthEmail,
-  toE164Phone,
 } from "@/lib/auth/phone";
 import { isBootstrapAdminPhone } from "@/lib/auth/bootstrap-admins";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { getTwilioClient, getVerifyServiceSid } from "@/lib/twilio/server";
 
 function mapAuthError(message: string): string {
   const m = message.toLowerCase();
@@ -28,13 +26,11 @@ export async function POST(req: Request) {
       phone?: string;
       password?: string;
       name?: string;
-      code?: string;
     };
 
     const local = body.phone ? normalizeMongoliaPhone(body.phone) : null;
     const password = body.password?.trim();
     const name = body.name?.trim();
-    const code = body.code?.trim();
 
     if (!local) {
       return NextResponse.json(
@@ -48,27 +44,6 @@ export async function POST(req: Request) {
     if (!password || password.length < 6) {
       return NextResponse.json(
         { error: "Нууц үг хамгийн багадаа 6 тэмдэгт байх ёстой." },
-        { status: 400 },
-      );
-    }
-    if (!code || !/^\d{4,8}$/.test(code)) {
-      return NextResponse.json(
-        { error: "SMS баталгаажуулах код оруулна уу." },
-        { status: 400 },
-      );
-    }
-
-    const e164 = toE164Phone(local);
-    const twilio = getTwilioClient();
-    const serviceSid = getVerifyServiceSid();
-
-    const check = await twilio.verify.v2
-      .services(serviceSid)
-      .verificationChecks.create({ to: e164, code });
-
-    if (check.status !== "approved") {
-      return NextResponse.json(
-        { error: "SMS код буруу эсвэл хугацаа дууссан. Шинэ код авна уу." },
         { status: 400 },
       );
     }
