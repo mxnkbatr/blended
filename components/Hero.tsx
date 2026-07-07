@@ -4,7 +4,6 @@ import { AchiraWordmark } from "./AchiraWordmark";
 import { HomeBanner } from "./HomeBanner";
 import { HomeBarberSlider } from "./HomeBarberSlider";
 import { HomeBestSellerGrid } from "./HomeBestSellerGrid";
-import { HomeShopSlider } from "./HomeShopSlider";
 
 const infoDesktop: {
   label: string;
@@ -39,7 +38,6 @@ export function Hero() {
       <div className="relative mx-auto flex w-full max-w-md flex-col md:hidden">
         <HomeBanner />
         <HomeBarberSlider />
-        <HomeShopSlider />
         <HomeBestSellerGrid />
       </div>
 
