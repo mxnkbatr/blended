@@ -1,5 +1,5 @@
 import { BookingSystem } from "@/components/BookingSystem";
-import { CalendarDays, Clock, MapPin } from "lucide-react";
+import { CalendarDays, Clock, MapPin, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 
 export const metadata = {
@@ -7,7 +7,14 @@ export const metadata = {
   description: "Achira Artist babershop — цаг захиалга",
 };
 
-const infoCards = [
+type InfoCard = {
+  label: string;
+  value: string;
+  Icon: LucideIcon;
+  href?: string;
+};
+
+const infoCards: InfoCard[] = [
   {
     label: "Цагийн хуваарь",
     value: "10:00 — 22:00",
@@ -24,7 +31,7 @@ const infoCards = [
     value: "1 цагийн зайтай",
     Icon: CalendarDays,
   },
-] as const;
+];
 
 export default function BookingPage() {
   return (
