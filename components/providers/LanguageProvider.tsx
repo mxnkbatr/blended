@@ -29,7 +29,7 @@ const dict = {
     wishlist: "Хадгалсан",
     notifications: "Мэдэгдэл",
     shop: "Дэлгүүр",
-    bestSeller: "Шилдэг борлуулалт",
+    bestSeller: "Тун удахгүй",
     searchPlaceholder: "Хайх…",
   },
   en: {
@@ -43,7 +43,7 @@ const dict = {
     wishlist: "Wishlist",
     notifications: "Notifications",
     shop: "Shop",
-    bestSeller: "Best seller",
+    bestSeller: "Coming soon",
     searchPlaceholder: "Search…",
   },
 } as const;

@@ -265,7 +265,7 @@ const HomeBestSellerGrid: React.FC<HomeBestSellerGridProps> = ({
 
   return (
     <View style={styles.section}>
-      <Text style={[styles.bestTitle, { color: fg }]}>Шилдэг бүтээгдэхүүн</Text>
+      <Text style={[styles.bestTitle, { color: fg }]}>Тун удахгүй</Text>
 
       <FlatList
         data={items}
