@@ -1,0 +1,11 @@
+{
+  "apps": [
+    {
+      "root": ".",
+      "dependencyInstallCommand": "npm ci",
+      "webBuildCommand": "npm run build:mobile",
+      "iosPath": "ios",
+      "androidPath": "android"
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-package mn.achira.artist;
+package mn.achira.app;
 
 import com.getcapacitor.BridgeActivity;
 

@@ -1,0 +1,7 @@
+{
+  "name": "Achira",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "custom"
+}

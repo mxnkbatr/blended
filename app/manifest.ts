@@ -1,8 +1,10 @@
 import type { MetadataRoute } from "next";
 
+export const dynamic = "force-static";
+
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Achira Artist",
+    name: "Achira",
     short_name: "Achira",
     description: "Achira Artist — Barbershop. Цаг авах, дэлгүүр.",
     start_url: "/",

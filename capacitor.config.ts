@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
-  appId: "mn.achira.artist",
-  appName: "Achira Artist",
+  appId: "mn.achira.app",
+  appName: "Achira",
   webDir: "out",
   server: {
     androidScheme: "https",

@@ -19,7 +19,9 @@ function supabaseImagePattern() {
 const supabasePattern = supabaseImagePattern();
 
 const nextConfig: NextConfig = {
-  ...(isMobileBuild ? { output: "export" as const } : {}),
+  ...(isMobileBuild
+    ? { output: "export" as const, distDir: ".next-mobile" }
+    : {}),
   allowedDevOrigins: ["192.168.1.175"],
   trailingSlash: true,
   images: {

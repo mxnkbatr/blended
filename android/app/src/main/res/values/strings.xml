@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Achira Artist</string>
-    <string name="title_activity_main">Achira Artist</string>
-    <string name="package_name">mn.achira.artist</string>
-    <string name="custom_url_scheme">mn.achira.artist</string>
+    <string name="app_name">Achira</string>
+    <string name="title_activity_main">Achira</string>
+    <string name="package_name">mn.achira.app</string>
+    <string name="custom_url_scheme">mn.achira.app</string>
 </resources>

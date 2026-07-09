@@ -49,7 +49,7 @@ function buildPushPayload({
       headers: {
         "apns-priority": "10",
         "apns-push-type": "alert",
-        "apns-topic": "mn.achira.artist",
+        "apns-topic": "mn.achira.app",
       },
       payload: {
         aps: {

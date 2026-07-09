@@ -34,17 +34,17 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "Achira Artist | Barbershop",
-    template: "%s | Achira Artist",
+    default: "Achira | Barbershop",
+    template: "%s | Achira",
   },
   description:
-    "Achira Artist — гар урлалын сэтгэлгээтэй babershop. Улаанбаатар, Regis Place. Цаг авах, дэлгүүр.",
-  applicationName: "Achira Artist",
+    "Achira — гар урлалын сэтгэлгээтэй babershop. Улаанбаатар, Regis Place. Цаг авах, дэлгүүр.",
+  applicationName: "Achira",
   themeColor: "#1e4f96",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Achira Artist",
+    title: "Achira",
   },
   formatDetection: {
     telephone: false,
