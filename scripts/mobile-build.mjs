@@ -54,11 +54,34 @@ if (prisma.status !== 0) {
   process.exit(prisma.status ?? 1);
 }
 
-const build = spawnSync(
-  "npx",
-  ["cross-env", "MOBILE_BUILD=1", "next", "build"],
-  { cwd: root, stdio: "inherit", shell: true },
-);
+const outDir = path.join(root, "out");
+const mobileOutDir = path.join(root, ".next-mobile", "out");
+
+const build = spawnSync("npx", ["next", "build"], {
+  cwd: root,
+  stdio: "inherit",
+  shell: true,
+  env: { ...process.env, MOBILE_BUILD: "1" },
+});
 
 restoreApi();
-process.exit(build.status ?? 1);
+
+if (build.status !== 0) {
+  process.exit(build.status ?? 1);
+}
+
+if (!existsSync(outDir) && existsSync(mobileOutDir)) {
+  cpSync(mobileOutDir, outDir, { recursive: true });
+  console.log("Copied static export from .next-mobile/out to out/");
+}
+
+if (!existsSync(outDir)) {
+  console.error(
+    "\nMobile build failed: `out/` folder missing after static export.\n" +
+      "Appflow/Capacitor expect web assets at ./out (see capacitor.config webDir).\n",
+  );
+  process.exit(1);
+}
+
+console.log("\nMobile build OK — out/ is ready for Capacitor sync.\n");
+process.exit(0);
