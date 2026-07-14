@@ -2,8 +2,9 @@ import { spawnSync } from "node:child_process";
 import { cpSync, existsSync, rmSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { loadEnvConfig } from "@next/env";
+import nextEnv from "@next/env";
 
+const { loadEnvConfig } = nextEnv;
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 loadEnvConfig(root);
 const apiDir = path.join(root, "app", "api");

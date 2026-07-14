@@ -27,6 +27,11 @@
 /android/app/build
 /android/local.properties
 /android/.idea
+/android/key.properties
+/android/keystore/
+*.jks
+*.keystore
+/dist-aab/
 
 # capacitor ios build artifacts
 /ios/App/Pods
@@ -36,6 +41,11 @@
 # misc
 .DS_Store
 *.pem
+*.p12
+*.csr
+*.cer
+*.key
+/dist-aab/
 
 # debug
 npm-debug.log*
