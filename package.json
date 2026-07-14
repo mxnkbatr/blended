@@ -1,6 +1,6 @@
 {
   "name": "blended",
-  "version": "0.1.0",
+  "version": "1.0.3",
   "private": true,
   "scripts": {
     "dev": "next dev -p 3000",
@@ -15,7 +15,7 @@
     "cap:build": "npm run mobile",
     "android:aab": "npm run mobile && node scripts/android-aab.mjs",
     "mobile:run": "npm run mobile && cap run android",
-    "assets:generate": "capacitor-assets generate --android --iconBackgroundColor \"#f4efe6\" --splashBackgroundColor \"#f4efe6\" --logoSplashScale 0.4",
+    "assets:generate": "capacitor-assets generate --android --ios --iconBackgroundColor \"#f4efe6\" --splashBackgroundColor \"#f4efe6\" --logoSplashScale 0.4",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:seed": "prisma db seed",
