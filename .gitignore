@@ -17,6 +17,7 @@
 /.next/
 /.next-mobile/
 /out/
+.mobile-build
 
 # production
 /build

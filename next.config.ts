@@ -1,6 +1,15 @@
+import { existsSync } from "node:fs";
+import path from "node:path";
 import type { NextConfig } from "next";
 
-const isMobileBuild = process.env.MOBILE_BUILD === "1";
+// File flag is more reliable than env alone on Appflow Mac runners.
+const mobileFlag = path.join(process.cwd(), ".mobile-build");
+const isMobileBuild =
+  process.env.MOBILE_BUILD === "1" || existsSync(mobileFlag);
+
+if (isMobileBuild) {
+  console.log("[next.config] Mobile static export enabled (webDir → out/)");
+}
 
 function supabaseImagePattern() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -19,9 +28,9 @@ function supabaseImagePattern() {
 const supabasePattern = supabaseImagePattern();
 
 const nextConfig: NextConfig = {
-  ...(isMobileBuild
-    ? { output: "export" as const, distDir: ".next-mobile" }
-    : {}),
+  // Do not set a custom distDir with output:"export" — Next 16 writes the
+  // static site into distDir instead of ./out, which breaks Capacitor/Appflow.
+  ...(isMobileBuild ? { output: "export" as const } : {}),
   allowedDevOrigins: ["192.168.1.175"],
   trailingSlash: true,
   images: {

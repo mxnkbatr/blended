@@ -1,5 +1,11 @@
 import { spawnSync } from "node:child_process";
-import { cpSync, existsSync, rmSync } from "node:fs";
+import {
+  cpSync,
+  existsSync,
+  readdirSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import nextEnv from "@next/env";
@@ -7,9 +13,14 @@ import nextEnv from "@next/env";
 const { loadEnvConfig } = nextEnv;
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 loadEnvConfig(root);
+
 const apiDir = path.join(root, "app", "api");
 const apiBackup = path.join(root, "app", "_api_mobile_backup");
 const nextCache = path.join(root, ".next");
+const nextMobileCache = path.join(root, ".next-mobile");
+const mobileFlag = path.join(root, ".mobile-build");
+const outDir = path.join(root, "out");
+const isWindows = process.platform === "win32";
 
 function hideApi() {
   if (!existsSync(apiDir)) return;
@@ -26,14 +37,46 @@ function restoreApi() {
   rmSync(apiBackup, { recursive: true, force: true });
 }
 
+function clearMobileFlag() {
+  if (existsSync(mobileFlag)) {
+    rmSync(mobileFlag, { force: true });
+  }
+}
+
+/** If a custom distDir left static HTML there, copy it to Capacitor webDir. */
+function recoverOutFromDistDir() {
+  if (existsSync(path.join(outDir, "index.html"))) return true;
+
+  const distExport = path.join(nextMobileCache, "index.html");
+  if (existsSync(distExport)) {
+    if (existsSync(outDir)) {
+      rmSync(outDir, { recursive: true, force: true });
+    }
+    cpSync(nextMobileCache, outDir, { recursive: true });
+    // Strip Next build artifacts that aren't needed in Cap webDir
+    for (const junk of ["cache", "server", "types", "diagnostics", "package.json"]) {
+      const p = path.join(outDir, junk);
+      if (existsSync(p)) rmSync(p, { recursive: true, force: true });
+    }
+    console.log("Recovered static export from .next-mobile/ → out/");
+    return existsSync(path.join(outDir, "index.html"));
+  }
+
+  return false;
+}
+
 try {
-  if (existsSync(nextCache)) {
-    rmSync(nextCache, { recursive: true, force: true });
+  for (const dir of [nextCache, nextMobileCache, outDir]) {
+    if (existsSync(dir)) {
+      rmSync(dir, { recursive: true, force: true });
+    }
   }
   hideApi();
+  writeFileSync(mobileFlag, "1\n", "utf8");
 } catch (error) {
+  clearMobileFlag();
   console.error(
-    "\nMobile build: could not move app/api aside. Stop `npm run dev` and retry.\n",
+    "\nMobile build: could not prepare mobile build. Stop `npm run dev` and retry.\n",
   );
   throw error;
 }
@@ -47,39 +90,50 @@ if (!process.env.NEXT_PUBLIC_APP_URL) {
 const prisma = spawnSync("npx", ["prisma", "generate"], {
   cwd: root,
   stdio: "inherit",
-  shell: true,
+  shell: isWindows,
 });
 if (prisma.status !== 0) {
   restoreApi();
+  clearMobileFlag();
   process.exit(prisma.status ?? 1);
 }
 
-const outDir = path.join(root, "out");
-const mobileOutDir = path.join(root, ".next-mobile", "out");
+console.log("Starting next build with MOBILE_BUILD=1 and .mobile-build flag...");
 
 const build = spawnSync("npx", ["next", "build"], {
   cwd: root,
   stdio: "inherit",
-  shell: true,
-  env: { ...process.env, MOBILE_BUILD: "1" },
+  shell: isWindows,
+  env: {
+    ...process.env,
+    MOBILE_BUILD: "1",
+  },
 });
 
 restoreApi();
+clearMobileFlag();
 
 if (build.status !== 0) {
   process.exit(build.status ?? 1);
 }
 
-if (!existsSync(outDir) && existsSync(mobileOutDir)) {
-  cpSync(mobileOutDir, outDir, { recursive: true });
-  console.log("Copied static export from .next-mobile/out to out/");
-}
+recoverOutFromDistDir();
 
-if (!existsSync(outDir)) {
+if (!existsSync(path.join(outDir, "index.html"))) {
   console.error(
-    "\nMobile build failed: `out/` folder missing after static export.\n" +
+    "\nMobile build failed: `out/index.html` missing after static export.\n" +
       "Appflow/Capacitor expect web assets at ./out (see capacitor.config webDir).\n",
   );
+  try {
+    console.error(
+      "Root entries:",
+      readdirSync(root)
+        .filter((name) => !name.startsWith("node_modules"))
+        .join(", "),
+    );
+  } catch {
+    // ignore
+  }
   process.exit(1);
 }
 
