@@ -1,6 +1,7 @@
 import { ThemeToggle } from "./theme-toggle";
 import { LanguageToggle } from "./language-toggle";
 import { I18nText } from "./text";
+import { DeleteAccountSection } from "@/components/DeleteAccountSection";
 
 export const metadata = {
   title: "Settings",
@@ -44,6 +45,8 @@ export default function SettingsPage() {
           <LanguageToggle />
         </div>
       </section>
+
+      <DeleteAccountSection />
     </main>
   );
 }

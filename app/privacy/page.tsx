@@ -9,15 +9,29 @@ export default function PrivacyPage() {
         Privacy Policy
       </h1>
       <p className="mt-4 text-sm leading-relaxed text-achira-blue/65 dark:text-achira-cream/60">
-        Энэ хуудас нь Achira Artist аппын нууцлалын бодлогын товч мэдээлэл юм.
-        Дараагийн хувилбарт дэлгэрэнгүй бодлогыг оруулна.
+        Энэ хуудас нь Achira аппын нууцлалын бодлогын товч мэдээлэл юм.
       </p>
       <ul className="mt-6 list-disc space-y-2 pl-5 text-sm text-achira-blue/65 dark:text-achira-cream/60">
         <li>Бүртгэл: нэр, утасны дугаар</li>
         <li>Захиалга/цаг авалт: түүх болон төлбөрийн төлөв</li>
         <li>Push notification: төхөөрөмжийн token (хэрэв зөвшөөрвөл)</li>
       </ul>
+
+      <h2 className="mt-10 text-lg font-semibold text-achira-blue-dark dark:text-achira-cream">
+        Бүртгэл устгах
+      </h2>
+      <p className="mt-3 text-sm leading-relaxed text-achira-blue/65 dark:text-achira-cream/60">
+        Та бүртгэлээ апп дотор{" "}
+        <strong>Профайл → Тохиргоо → Бүртгэл устгах</strong> гэсэн цэсээр
+        устгаж болно. Дэлгэрэнгүй заавар:{" "}
+        <a
+          className="underline underline-offset-4"
+          href="/delete-account/"
+        >
+          /delete-account
+        </a>
+        .
+      </p>
     </main>
   );
 }
-

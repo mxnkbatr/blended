@@ -378,6 +378,18 @@ export function ProfileClient() {
           </div>
           <ChevronRight className="h-4 w-4 text-achira-blue/40" />
         </Link>
+        <Link
+          href="/settings"
+          className="flex items-center justify-between gap-3 rounded-xl px-3 py-3 active:scale-[0.99]"
+        >
+          <div className="flex items-center gap-3">
+            <User className="h-5 w-5 text-red-600/80 dark:text-red-300/80" />
+            <span className="text-sm font-medium text-red-700 dark:text-red-300">
+              Бүртгэл устгах
+            </span>
+          </div>
+          <ChevronRight className="h-4 w-4 text-achira-blue/40" />
+        </Link>
       </div>
     </main>
   );
