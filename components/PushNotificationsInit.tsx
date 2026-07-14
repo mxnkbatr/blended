@@ -60,6 +60,19 @@ export function PushNotificationsInit() {
 
           await PushNotifications.register();
 
+          // Android 8+ requires an explicit channel matching FCM payload.
+          if (Capacitor.getPlatform() === "android") {
+            await PushNotifications.createChannel({
+              id: "achira_push",
+              name: "Achira",
+              description: "Achira мэдэгдэл",
+              importance: 5,
+              visibility: 1,
+              sound: "default",
+              vibration: true,
+            });
+          }
+
           PushNotifications.addListener("registration", async (ev) => {
             const platform = Capacitor.getPlatform();
             if (platform === "android" || platform === "ios") {
