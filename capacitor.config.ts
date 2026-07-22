@@ -8,6 +8,17 @@ const config: CapacitorConfig = {
     androidScheme: "https",
     iosScheme: "https",
   },
+  // FCM requires GoogleService-Info.plist on iOS. Exclude it until Firebase iOS
+  // app is registered and the plist is added under ios/App/App/.
+  ios: {
+    includePlugins: [
+      "@capacitor/app",
+      "@capacitor/haptics",
+      "@capacitor/push-notifications",
+      "@capacitor/splash-screen",
+      "@capacitor/status-bar",
+    ],
+  },
   plugins: {
     SplashScreen: {
       launchShowDuration: 1500,

@@ -75,7 +75,8 @@ export function PushNotificationsInit() {
 
           PushNotifications.addListener("registration", async (ev) => {
             const platform = Capacitor.getPlatform();
-            if (platform === "android" || platform === "ios") {
+            // FCM is Android-only until GoogleService-Info.plist is added for iOS.
+            if (platform === "android") {
               try {
                 const { FCM } = await import("@capacitor-community/fcm");
                 const fcm = await FCM.getToken();
