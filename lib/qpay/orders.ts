@@ -1,5 +1,6 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { CartLine } from "@/components/providers/CartProvider";
+import { incrementPromoUsage } from "@/lib/promo/server";
 import {
   buildOrderPaidSms,
   sendOrderPaidSms,
@@ -14,6 +15,7 @@ type OrderRow = {
   payment_note: string | null;
   qpay_sender_invoice_no: string | null;
   payment_sms_sent_at: string | null;
+  promo_id: string | null;
 };
 
 async function fetchOrderByInvoice(invoiceId: string): Promise<OrderRow | null> {
@@ -21,7 +23,7 @@ async function fetchOrderByInvoice(invoiceId: string): Promise<OrderRow | null> 
   const { data, error } = await supabase
     .from("shop_orders")
     .select(
-      "id, status, customer_name, customer_phone, total_mnt, payment_note, qpay_sender_invoice_no, payment_sms_sent_at",
+      "id, status, customer_name, customer_phone, total_mnt, payment_note, qpay_sender_invoice_no, payment_sms_sent_at, promo_id",
     )
     .eq("qpay_invoice_id", invoiceId)
     .maybeSingle();
@@ -35,7 +37,7 @@ async function fetchOrderById(orderId: string): Promise<OrderRow | null> {
   const { data, error } = await supabase
     .from("shop_orders")
     .select(
-      "id, status, customer_name, customer_phone, total_mnt, payment_note, qpay_sender_invoice_no, payment_sms_sent_at",
+      "id, status, customer_name, customer_phone, total_mnt, payment_note, qpay_sender_invoice_no, payment_sms_sent_at, promo_id",
     )
     .eq("id", orderId)
     .maybeSingle();
@@ -90,6 +92,9 @@ export async function finalizeOrderPayment(input: {
   if (!wasPaid) {
     const updated = await markPaid(order.id);
     if (!updated) return { ok: false, orderId: order.id };
+    if (order.promo_id) {
+      await incrementPromoUsage(order.promo_id);
+    }
   }
 
   let smsSent = Boolean(order.payment_sms_sent_at);

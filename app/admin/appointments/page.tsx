@@ -15,6 +15,7 @@ import {
   labelStatus,
 } from "@/lib/admin-labels";
 import { AdminFeedback } from "@/components/admin/AdminFeedback";
+import { useAdminAutoRefresh } from "@/hooks/useAdminAutoRefresh";
 import { hapticSuccess } from "@/lib/haptics";
 
 const STATUSES = [
@@ -64,6 +65,8 @@ export default function AdminAppointmentsPage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  useAdminAutoRefresh(load);
 
   const visible =
     filter === "ALL" ? rows : rows.filter((r) => r.status === filter);

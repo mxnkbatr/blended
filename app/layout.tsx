@@ -38,7 +38,7 @@ export const metadata: Metadata = {
     template: "%s | Achira",
   },
   description:
-    "Achira — гар урлалын сэтгэлгээтэй babershop. Улаанбаатар, Regis Place. Цаг авах, дэлгүүр.",
+    "Achira — гар урлалын сэтгэлгээтэй babershop. Хан уул дүүрэг, 15р хороо, 10р байр. Цаг авах, дэлгүүр.",
   applicationName: "Achira",
   themeColor: "#1e4f96",
   appleWebApp: {

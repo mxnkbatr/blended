@@ -10,6 +10,7 @@ import {
 } from "@/lib/supabase/admin-crud";
 import { ORDER_STATUS_LABELS, labelStatus } from "@/lib/admin-labels";
 import { AdminFeedback } from "@/components/admin/AdminFeedback";
+import { useAdminAutoRefresh } from "@/hooks/useAdminAutoRefresh";
 import { hapticSuccess } from "@/lib/haptics";
 
 const STATUSES = [
@@ -54,6 +55,8 @@ export default function AdminOrdersPage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  useAdminAutoRefresh(load);
 
   const visible =
     filter === "ALL" ? rows : rows.filter((r) => r.status === filter);

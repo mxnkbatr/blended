@@ -8,6 +8,7 @@ import {
 } from "@/lib/supabase/admin-crud";
 import { AdminFeedback } from "@/components/admin/AdminFeedback";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { useAdminAutoRefresh } from "@/hooks/useAdminAutoRefresh";
 
 function formatMnt(n: number) {
   return new Intl.NumberFormat("mn-MN").format(n) + " ₮";
@@ -73,6 +74,8 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  useAdminAutoRefresh(load);
 
   return (
     <div>

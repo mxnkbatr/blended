@@ -9,6 +9,7 @@ import {
   adminUpsertBarber,
   type BarberRow,
 } from "@/lib/supabase/admin-crud";
+import { useAdminAutoRefresh } from "@/hooks/useAdminAutoRefresh";
 import { AdminFeedback } from "@/components/admin/AdminFeedback";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { BarberImageUpload } from "@/components/admin/BarberImageUpload";
@@ -69,6 +70,8 @@ export default function AdminBarbersPage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  useAdminAutoRefresh(load);
 
   function openCreate() {
     setEditingId(null);

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { requireAdminFromRequest } from "@/lib/supabase/server-auth";
 
 const MAX_BYTES = 5 * 1024 * 1024;
 const ALLOWED = new Set([
@@ -12,6 +13,11 @@ const ALLOWED = new Set([
 
 export async function POST(req: Request) {
   try {
+    const adminUser = await requireAdminFromRequest(req);
+    if (!adminUser) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const formData = await req.formData();
     const file = formData.get("file");
 

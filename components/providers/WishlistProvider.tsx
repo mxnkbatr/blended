@@ -24,6 +24,7 @@ type WishlistContextValue = {
   toggle: (item: WishlistItem) => void;
   clear: () => void;
   count: number;
+  hydrated: boolean;
 };
 
 const WishlistContext = createContext<WishlistContextValue | null>(null);
@@ -32,6 +33,7 @@ const STORAGE_KEY = "blended:wishlist:v1";
 
 export function WishlistProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<WishlistItem[]>([]);
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     try {
@@ -40,7 +42,7 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
       const parsed = JSON.parse(raw) as unknown;
       if (!Array.isArray(parsed)) return;
       setItems(
-        parsed.filter(Boolean).map((x: any) => ({
+        parsed.filter(Boolean).map((x: Record<string, unknown>) => ({
           slug: String(x.slug ?? ""),
           name: String(x.name ?? ""),
           priceMnt: Number(x.priceMnt ?? 0),
@@ -50,15 +52,17 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
     } catch {
       // ignore
     }
+    setHydrated(true);
   }, []);
 
   useEffect(() => {
+    if (!hydrated) return;
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
     } catch {
       // ignore
     }
-  }, [items]);
+  }, [items, hydrated]);
 
   const has = useCallback((slug: string) => items.some((i) => i.slug === slug), [
     items,
@@ -95,8 +99,9 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
       toggle,
       clear,
       count: items.length,
+      hydrated,
     };
-  }, [items, has, add, remove, toggle, clear]);
+  }, [items, has, add, remove, toggle, clear, hydrated]);
 
   return (
     <WishlistContext.Provider value={value}>
@@ -110,4 +115,3 @@ export function useWishlist() {
   if (!ctx) throw new Error("useWishlist must be used within WishlistProvider");
   return ctx;
 }
-

@@ -8,6 +8,7 @@ import {
   adminUpsertProduct,
   type ProductRow,
 } from "@/lib/supabase/admin-crud";
+import { useAdminAutoRefresh } from "@/hooks/useAdminAutoRefresh";
 
 function emptyProduct(): Partial<ProductRow> & {
   slug: string;
@@ -55,6 +56,8 @@ export default function AdminProductsPage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  useAdminAutoRefresh(load);
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();

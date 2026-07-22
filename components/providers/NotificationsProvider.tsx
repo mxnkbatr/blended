@@ -15,6 +15,7 @@ import {
   markUserNotificationRead,
   type InboxNotification,
 } from "@/lib/supabase/notifications";
+import { useVisibilityRefresh } from "@/hooks/useVisibilityRefresh";
 
 export type AppNotification = {
   id: string;
@@ -111,6 +112,20 @@ export function NotificationsProvider({
 
   useEffect(() => {
     void refresh();
+  }, [refresh]);
+
+  useVisibilityRefresh(() => {
+    void refresh();
+  });
+
+  useEffect(() => {
+    const onRefresh = () => {
+      void refresh();
+    };
+    window.addEventListener("achira:notifications-refresh", onRefresh);
+    return () => {
+      window.removeEventListener("achira:notifications-refresh", onRefresh);
+    };
   }, [refresh]);
 
   useEffect(() => {

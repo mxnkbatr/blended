@@ -27,7 +27,7 @@ export default function PrivacyPage() {
           <a className="underline underline-offset-4" href="tel:88668612">
             88668612
           </a>
-          , хаяг: 120k Regis Place, Улаанбаатар.
+          , хаяг: Хан уул дүүрэг, 15р хороо, 10р байр.
         </p>
       </Section>
 

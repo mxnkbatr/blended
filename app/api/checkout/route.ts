@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { isQPayConfigured } from "@/lib/qpay/config";
-import { validateCartStock } from "@/lib/products/stock";
-import { incrementPromoUsage, validateShopPromo } from "@/lib/promo/server";
+import { validateCartStock, resolveCartLines } from "@/lib/products/stock";
+import { validateShopPromo } from "@/lib/promo/server";
 import {
   createShopOrderServer,
   finalizeOrderPayment,
@@ -47,18 +47,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: stockCheck.error }, { status: 400 });
     }
 
-    const checkoutLines = lines.map((line) => ({
-      slug: line.slug,
-      name: line.name,
-      priceMnt: line.priceMnt,
-      qty: line.qty,
-      imageUrl: line.imageUrl,
-    }));
+    const resolved = await resolveCartLines(lines);
+    if (!resolved.ok) {
+      return NextResponse.json({ error: resolved.error }, { status: 400 });
+    }
 
-    const subtotalMnt = checkoutLines.reduce(
-      (sum, line) => sum + line.priceMnt * line.qty,
-      0,
-    );
+    const checkoutLines = resolved.lines;
+    const subtotalMnt = resolved.subtotalMnt;
 
     let discountMnt = 0;
     let totalMnt = subtotalMnt;
@@ -118,8 +113,6 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: orderResult.error }, { status: 500 });
       }
 
-      if (promoId) await incrementPromoUsage(promoId);
-
       return NextResponse.json({
         orderId: orderResult.orderId,
         paymentRef: senderInvoiceNo,
@@ -151,8 +144,6 @@ export async function POST(req: Request) {
     if (!orderResult.ok) {
       return NextResponse.json({ error: orderResult.error }, { status: 500 });
     }
-
-    if (promoId) await incrementPromoUsage(promoId);
 
     return NextResponse.json({
       orderId: orderResult.orderId,

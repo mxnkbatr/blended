@@ -1,29 +1,31 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { Product } from "@/lib/data/products";
-import { products as fallbackProducts } from "@/lib/data/products";
 import { fetchProducts } from "@/lib/supabase/queries";
+import { useVisibilityRefresh } from "@/hooks/useVisibilityRefresh";
 
 export function useProducts() {
-  const [products, setProducts] = useState<Product[]>(fallbackProducts);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    void (async () => {
+  const load = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
+    try {
       const data = await fetchProducts();
-      if (!cancelled) {
-        setProducts(data);
-        setLoading(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
+      setProducts(data);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  return { products, loading };
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  useVisibilityRefresh(() => {
+    void load(true);
+  });
+
+  return { products, loading, refetch: () => load(true) };
 }

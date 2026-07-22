@@ -14,6 +14,7 @@ import {
 } from "@/lib/supabase/admin-crud";
 import { AdminFeedback } from "@/components/admin/AdminFeedback";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { useAdminAutoRefresh } from "@/hooks/useAdminAutoRefresh";
 import { hapticSuccess } from "@/lib/haptics";
 
 type PromoForm = Omit<PromoCodeAdminRow, "id" | "used_count"> & { id?: string };
@@ -69,6 +70,8 @@ export default function AdminPromosPage() {
     void load();
   }, [load]);
 
+  useAdminAutoRefresh(load);
+
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     if (!form) return;
@@ -85,6 +88,18 @@ export default function AdminPromosPage() {
       setError(err instanceof Error ? err.message : "Хадгалахад алдаа");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm("Промо кодыг устгах уу?")) return;
+    setSuccess(null);
+    try {
+      await adminDeletePromoCode(id);
+      setSuccess("Устгагдлаа.");
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Алдаа");
     }
   }
 
@@ -308,7 +323,7 @@ export default function AdminPromosPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => void adminDeletePromoCode(row.id).then(load)}
+                  onClick={() => void handleDelete(row.id)}
                   className="rounded-xl border border-rose-200 p-2.5 text-rose-600"
                 >
                   <Trash2 className="h-4 w-4" />

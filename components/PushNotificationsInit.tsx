@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect } from "react";
 import { Capacitor } from "@capacitor/core";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { apiUrl } from "@/lib/api-base";
@@ -31,7 +31,6 @@ async function registerTokenOnServer(
 
 export function PushNotificationsInit() {
   const { user, loading } = useAuth();
-  const startedRef = useRef(false);
 
   const registerToken = useCallback(
     async (token: string, platform: string) => {
@@ -42,8 +41,7 @@ export function PushNotificationsInit() {
   );
 
   useEffect(() => {
-    if (loading || !user || startedRef.current) return;
-    startedRef.current = true;
+    if (loading || !user) return;
 
     if (Capacitor.isNativePlatform()) {
       void (async () => {
@@ -60,7 +58,6 @@ export function PushNotificationsInit() {
 
           await PushNotifications.register();
 
-          // Android 8+ requires an explicit channel matching FCM payload.
           if (Capacitor.getPlatform() === "android") {
             await PushNotifications.createChannel({
               id: "achira_push",
@@ -73,9 +70,8 @@ export function PushNotificationsInit() {
             });
           }
 
-          PushNotifications.addListener("registration", async (ev) => {
+          await PushNotifications.addListener("registration", async (ev) => {
             const platform = Capacitor.getPlatform();
-            // FCM is Android-only until GoogleService-Info.plist is added for iOS.
             if (platform === "android") {
               try {
                 const { FCM } = await import("@capacitor-community/fcm");
@@ -92,6 +88,13 @@ export function PushNotificationsInit() {
               await registerToken(ev.value, platform);
             }
           });
+
+          await PushNotifications.addListener(
+            "pushNotificationReceived",
+            () => {
+              window.dispatchEvent(new Event("achira:notifications-refresh"));
+            },
+          );
         } catch (err) {
           console.error("[push] native init failed:", err);
         }
@@ -121,7 +124,7 @@ export function PushNotificationsInit() {
         }
       })();
     }
-  }, [loading, user, registerToken]);
+  }, [loading, user?.id, registerToken]);
 
   return null;
 }

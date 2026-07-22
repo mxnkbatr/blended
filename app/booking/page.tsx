@@ -22,7 +22,7 @@ const infoCards: InfoCard[] = [
   },
   {
     label: "Хаяг",
-    value: "120k Regis Place, 3 давхар",
+    value: "Хан уул дүүрэг, 15р хороо, 10р байр",
     href: "https://maps.app.goo.gl/2DrMFTwCAZpE5Ln67?g_st=ii",
     Icon: MapPin,
   },

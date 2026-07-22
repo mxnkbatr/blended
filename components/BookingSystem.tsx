@@ -4,6 +4,7 @@ import Image from "next/image";
 import { CalendarDays, CheckCircle2, ChevronRight, Clock, Loader2, Scissors, User } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useBarbers } from "@/hooks/useBarbers";
+import { useVisibilityRefresh } from "@/hooks/useVisibilityRefresh";
 import {
   buildSlotsForDate,
   getDaySchedule,
@@ -267,6 +268,10 @@ export function BookingSystem() {
     setLoadingSlots(false);
   }, [barberId, date]);
 
+  useVisibilityRefresh(() => {
+    void refreshBookedSlots();
+  }, 20_000);
+
   useEffect(() => {
     if (!appointmentId || !qpay || submitted) return;
 
@@ -392,38 +397,43 @@ export function BookingSystem() {
     setSubmitting(true);
     setSubmitError(null);
 
-    const res = await fetch(apiUrl("/api/appointments/"), {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        barberId,
-        date,
-        time,
-        customerName: name,
-        customerPhone: phone,
-        promoCode: promoCode.trim() || undefined,
-      }),
-    });
+    try {
+      const res = await fetch(apiUrl("/api/appointments/"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          barberId,
+          date,
+          time,
+          customerName: name,
+          customerPhone: phone,
+          promoCode: promoCode.trim() || undefined,
+        }),
+      });
 
-    const result = (await res.json()) as {
-      id?: string;
-      error?: string;
-      qpay?: QPayPayload;
-      paymentRef?: string;
-      totalMnt?: number;
-    };
+      const result = (await res.json()) as {
+        id?: string;
+        error?: string;
+        qpay?: QPayPayload;
+        paymentRef?: string;
+        totalMnt?: number;
+      };
 
-    setSubmitting(false);
+      if (!res.ok || !result.id || !result.qpay) {
+        setSubmitError(result.error ?? "Захиалга үүсгэж чадсангүй.");
+        return;
+      }
 
-    if (!res.ok || !result.id || !result.qpay) {
-      setSubmitError(result.error ?? "Захиалга үүсгэж чадсангүй.");
-      return;
+      setAppointmentId(result.id);
+      setQpay(result.qpay);
+      setPaymentRef(result.paymentRef ?? null);
+      setTotalMnt(result.totalMnt ?? bookingPriceMnt);
+      await refreshBookedSlots();
+    } catch {
+      setSubmitError("Сүлжээний алдаа. Дахин оролдоно уу.");
+    } finally {
+      setSubmitting(false);
     }
-
-    setAppointmentId(result.id);
-    setQpay(result.qpay);
-    setPaymentRef(result.paymentRef ?? null);
-    setTotalMnt(result.totalMnt ?? bookingPriceMnt);
   }
 
   if (appointmentId && qpay && !submitted && selectedBarber && time) {

@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import type { User } from "@supabase/supabase-js";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export async function getUserFromRequest(
   req: Request,
@@ -26,4 +27,21 @@ export async function getUserFromRequest(
   const { data, error } = await supabase.auth.getUser(jwt);
   if (error || !data.user) return null;
   return data.user;
+}
+
+export async function requireAdminFromRequest(
+  req: Request,
+): Promise<User | null> {
+  const user = await getUserFromRequest(req);
+  if (!user) return null;
+
+  const admin = createSupabaseAdminClient();
+  const { data, error } = await admin
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (error || data?.role !== "admin") return null;
+  return user;
 }

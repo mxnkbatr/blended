@@ -3,7 +3,9 @@
 import Image from "next/image";
 import { Camera, Loader2, X } from "lucide-react";
 import { useRef, useState } from "react";
+import { useAuth } from "@/components/providers/AuthProvider";
 import { apiUrl } from "@/lib/api-base";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 type Props = {
   value: string | null;
@@ -11,6 +13,7 @@ type Props = {
 };
 
 export function BarberImageUpload({ value, onChange }: Props) {
+  const { user } = useAuth();
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -20,21 +23,33 @@ export function BarberImageUpload({ value, onChange }: Props) {
     setError(null);
 
     try {
+      const supabase = createSupabaseBrowserClient();
+      const { data } = supabase ? await supabase.auth.getSession() : { data: null };
+      const accessToken = data?.session?.access_token;
+
+      if (!user || !accessToken) {
+        setError("Зураг оруулахын тулд admin эрхтэй нэвтэрнэ үү.");
+        return;
+      }
+
       const body = new FormData();
       body.append("file", file);
 
       const res = await fetch(apiUrl("/api/admin/upload-barber-image/"), {
         method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
         body,
       });
-      const data = (await res.json()) as { url?: string; error?: string };
+      const payload = (await res.json()) as { url?: string; error?: string };
 
-      if (!res.ok || !data.url) {
-        setError(data.error ?? "Зураг оруулахад алдаа гарлаа.");
+      if (!res.ok || !payload.url) {
+        setError(payload.error ?? "Зураг оруулахад алдаа гарлаа.");
         return;
       }
 
-      onChange(data.url);
+      onChange(payload.url);
     } catch {
       setError("Серверт холбогдож чадсангүй.");
     } finally {

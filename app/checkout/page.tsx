@@ -59,6 +59,7 @@ export default function CheckoutPage() {
         const data = (await res.json()) as { paid?: boolean; smsSent?: boolean };
         if (!cancelled && data.paid) {
           setPaid(true);
+          clear();
           setSmsSent(Boolean(data.smsSent));
           setPolling(false);
           await hapticSuccess();
@@ -75,7 +76,7 @@ export default function CheckoutPage() {
       window.clearInterval(id);
       setPolling(false);
     };
-  }, [orderId, paid, tab]);
+  }, [orderId, paid, tab, clear]);
 
   if (!hydrated) {
     return (
@@ -327,7 +328,6 @@ export default function CheckoutPage() {
         typeof data.totalMnt === "number" ? data.totalMnt : payableMnt,
       );
       if (data.qpay) setQpay(data.qpay);
-      clear();
       router.refresh();
     } catch {
       setError("Сүлжээний алдаа. Дахин оролдоно уу.");

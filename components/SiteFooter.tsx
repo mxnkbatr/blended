@@ -23,13 +23,13 @@ export function SiteFooter() {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                120k Regis Place 3rd floor, Ulaanbaatar
+                Хан уул дүүрэг, 15р хороо, 10р байр
               </a>
               <a
                 className="block transition-colors hover:text-achira-burgundy dark:hover:text-achira-cream"
-                href="tel:77757747"
+                href="tel:88668612"
               >
-                77757747
+                88668612
               </a>
               <p>10:00 — 22:00</p>
             </div>

@@ -67,10 +67,12 @@ export async function fetchBarbers(): Promise<Barber[]> {
     .eq("active", true)
     .order("name");
 
-  if (error || !data?.length) {
-    console.warn("[supabase] fetchBarbers:", error?.message ?? "empty, using fallback");
-    return fallbackBarbers;
+  if (error) {
+    console.warn("[supabase] fetchBarbers:", error.message);
+    return [];
   }
+
+  if (!data?.length) return [];
 
   return data.map(mapBarber);
 }
@@ -89,11 +91,11 @@ export async function fetchProducts(): Promise<Product[]> {
 
   if (error) {
     console.warn("[supabase] fetchProducts:", error.message);
-    return fallbackProducts.map(withFallbackDefaults);
+    return [];
   }
 
   if (!data?.length) {
-    return fallbackProducts.map(withFallbackDefaults);
+    return [];
   }
 
   return data.map(mapProduct);
@@ -134,22 +136,28 @@ export async function fetchBookedTimes(
 
   const dayStart = `${date}T00:00:00+08:00`;
   const dayEnd = `${date}T23:59:59.999+08:00`;
+  const holdMs = 15 * 60 * 1000;
 
   const { data, error } = await supabase
     .from("appointments")
-    .select("starts_at, status")
+    .select("starts_at, status, created_at")
     .eq("barber_id", barberId)
     .gte("starts_at", dayStart)
     .lte("starts_at", dayEnd)
-    .neq("status", "CANCELLED")
-    .neq("status", "AWAITING_PAYMENT");
+    .neq("status", "CANCELLED");
 
   if (error || !data) {
     console.warn("[supabase] fetchBookedTimes:", error?.message);
     return [];
   }
 
-  return data.map((row) => formatAppointmentSlot(row.starts_at));
+  const blocked = data.filter((row) => {
+    if (row.status !== "AWAITING_PAYMENT") return true;
+    const age = Date.now() - new Date(row.created_at).getTime();
+    return age < holdMs;
+  });
+
+  return blocked.map((row) => formatAppointmentSlot(row.starts_at));
 }
 
 function formatAppointmentSlot(iso: string): string {

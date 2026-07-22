@@ -12,7 +12,7 @@ const infoDesktop: {
 }[] = [
   {
     label: "Хаяг",
-    value: "Хан уул дүүрэг, 15р хороо, 10р байр ",
+    value: "Хан уул дүүрэг, 15р хороо, 10р байр",
     href: "https://maps.app.goo.gl/2DrMFTwCAZpE5Ln67?g_st=ii",
   },
   {
