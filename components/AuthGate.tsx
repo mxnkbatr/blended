@@ -5,7 +5,7 @@ import { useEffect, useRef } from "react";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { LoginForm } from "@/components/LoginForm";
 
-const PUBLIC_PATHS = ["/login", "/register"] as const;
+const PUBLIC_PATHS = ["/login", "/register", "/privacy", "/terms", "/delete-account"] as const;
 
 function isPublicPath(pathname: string) {
   return PUBLIC_PATHS.some(

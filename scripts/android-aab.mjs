@@ -16,7 +16,7 @@ const aabSrc = path.join(
   "app-release.aab",
 );
 const outDir = path.join(root, "dist-aab");
-const aabDest = path.join(outDir, "Achira-1.0.4.aab");
+const aabDest = path.join(outDir, "Achira-1.0.5.aab");
 
 if (!existsSync(keyProps)) {
   console.error(

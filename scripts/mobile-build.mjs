@@ -81,11 +81,28 @@ try {
   throw error;
 }
 
-if (!process.env.NEXT_PUBLIC_APP_URL) {
-  console.warn(
-    "\nWarning: NEXT_PUBLIC_APP_URL is not set. Capacitor API calls need a deployed host (e.g. https://blended-phi.vercel.app).\n",
+const requiredPublicEnv = [
+  "NEXT_PUBLIC_APP_URL",
+  "NEXT_PUBLIC_SUPABASE_URL",
+  "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+] as const;
+
+const missingPublicEnv = requiredPublicEnv.filter((key) => !process.env[key]);
+if (missingPublicEnv.length > 0) {
+  console.error(
+    "\nMobile build aborted: missing required env vars for native login/API:\n" +
+      missingPublicEnv.map((key) => `  - ${key}`).join("\n") +
+      "\n\nSet these in Appflow Environment (or .env.local locally), then rebuild.\n",
   );
+  restoreApi();
+  clearMobileFlag();
+  process.exit(1);
 }
+
+console.log(
+  `Using NEXT_PUBLIC_APP_URL=${process.env.NEXT_PUBLIC_APP_URL}\n` +
+    `Using NEXT_PUBLIC_SUPABASE_URL=${process.env.NEXT_PUBLIC_SUPABASE_URL}\n`,
+);
 
 const prisma = spawnSync("npx", ["prisma", "generate"], {
   cwd: root,

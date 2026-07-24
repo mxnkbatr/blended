@@ -66,12 +66,12 @@ export function LoginForm({ defaultMode = "signin" }: LoginFormProps) {
         Achira Artist
       </p>
       <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl text-achira-blue-dark dark:text-achira-cream md:text-4xl">
-        {mode === "signin" ? "Нэвтрэх" : "Бүртгүүлэх"}
+        {mode === "signin" ? "Нэвтрэх / Sign in" : "Бүртгүүлэх / Sign up"}
       </h1>
       <p className="mt-2 text-sm text-achira-blue/65 dark:text-achira-cream/60">
         {mode === "signin"
-          ? "Утасны дугаар, нууц үгээ оруулна уу."
-          : "Утас, нууц үгээ оруулаад бүртгүүлнэ."}
+          ? "Утасны дугаар, нууц үгээ оруулна уу. / Enter phone number and password."
+          : "Утас, нууц үгээ оруулаад бүртгүүлнэ. / Enter phone, password, and name."}
       </p>
 
       <div className="mt-6 flex rounded-2xl border border-achira-blue/12 bg-achira-paper/50 p-1 dark:border-achira-cream/10 dark:bg-achira-blue/10">
@@ -90,7 +90,7 @@ export function LoginForm({ defaultMode = "signin" }: LoginFormProps) {
                 : "text-achira-blue/60 dark:text-achira-cream/55"
             }`}
           >
-            {m === "signin" ? "Нэвтрэх" : "Бүртгэл"}
+            {m === "signin" ? "Нэвтрэх / Sign in" : "Бүртгэл / Sign up"}
           </button>
         ))}
       </div>
@@ -99,7 +99,7 @@ export function LoginForm({ defaultMode = "signin" }: LoginFormProps) {
         {mode === "signup" && (
           <div>
             <label className="text-[10px] font-medium uppercase tracking-[0.22em] text-achira-blue/55 dark:text-achira-cream/50">
-              Нэр
+              Нэр / Name
             </label>
             <input
               required
@@ -113,7 +113,7 @@ export function LoginForm({ defaultMode = "signin" }: LoginFormProps) {
         )}
         <div>
           <label className="text-[10px] font-medium uppercase tracking-[0.22em] text-achira-blue/55 dark:text-achira-cream/50">
-            Утасны дугаар
+            Утасны дугаар / Phone
           </label>
           <div className="mt-1.5 flex gap-2">
             <div className="flex min-w-0 flex-1 overflow-hidden rounded-2xl border border-achira-blue/12 bg-white/80 focus-within:border-achira-blue/30 dark:border-achira-cream/12 dark:bg-achira-navy/60 dark:focus-within:border-achira-cream/30">
@@ -139,7 +139,7 @@ export function LoginForm({ defaultMode = "signin" }: LoginFormProps) {
 
         <div>
           <label className="text-[10px] font-medium uppercase tracking-[0.22em] text-achira-blue/55 dark:text-achira-cream/50">
-            Нууц үг
+            Нууц үг / Password
           </label>
           <input
             required
@@ -177,8 +177,8 @@ export function LoginForm({ defaultMode = "signin" }: LoginFormProps) {
           {submitting
             ? "Түр хүлээнэ үү..."
             : mode === "signin"
-              ? "Нэвтрэх"
-              : "Бүртгүүлэх"}
+              ? "Нэвтрэх / Sign in"
+              : "Бүртгүүлэх / Sign up"}
         </button>
       </form>
 
