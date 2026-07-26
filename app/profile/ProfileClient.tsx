@@ -155,9 +155,9 @@ export function ProfileClient() {
 
   return (
     <main className="mx-auto max-w-md px-4 py-8 md:py-12">
-      <div className="rounded-3xl border border-achira-blue/12 bg-achira-paper/60 p-6 dark:border-achira-cream/10 dark:bg-achira-blue/10">
+      <div className="cream-surface p-6">
         <div className="flex items-start justify-between gap-3">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-achira-blue/15 bg-achira-blue text-lg font-semibold text-achira-cream dark:border-achira-cream/20 dark:bg-achira-cream dark:text-achira-blue-dark">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-achira-gold/25 bg-achira-blue text-lg font-semibold text-achira-cream shadow-[0_8px_24px_rgba(28,74,140,0.22)] dark:border-achira-cream/20 dark:bg-achira-cream dark:text-achira-blue-dark">
             {displayName.charAt(0).toUpperCase()}
           </div>
           <button

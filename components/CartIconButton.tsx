@@ -9,12 +9,12 @@ export function CartIconButton() {
   return (
     <Link
       href="/checkout"
-      className="relative flex h-9 w-9 items-center justify-center rounded-full border border-black/10 bg-black/[0.02] text-zinc-600 transition-colors hover:bg-black/[0.04] hover:text-zinc-900 active:scale-95"
+      className="ios-icon-btn relative"
       aria-label="Сагс"
     >
-      <ShoppingBag className="h-4 w-4" strokeWidth={1.35} />
+      <ShoppingBag className="h-[18px] w-[18px]" strokeWidth={1.5} />
       {count > 0 && (
-        <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-zinc-950 px-1 text-[9px] font-bold text-white">
+        <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-achira-burgundy px-1 text-[9px] font-bold text-white shadow-[0_0_0_2px_var(--color-achira-cream)]">
           {count > 9 ? "9+" : count}
         </span>
       )}

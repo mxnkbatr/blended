@@ -27,7 +27,7 @@ export function SiteHeader() {
   }
 
   return (
-    <header className="sticky top-0 z-50 hidden border-b border-achira-blue/10 bg-achira-cream/90 backdrop-blur-md md:block dark:border-achira-blue/20 dark:bg-achira-navy/90">
+    <header className="sticky top-0 z-50 hidden border-b border-achira-gold/12 bg-achira-cream/65 backdrop-blur-3xl backdrop-saturate-180 md:block dark:border-white/8 dark:bg-achira-navy/65">
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 sm:px-6">
         <Link
           href="/"
@@ -37,17 +37,17 @@ export function SiteHeader() {
           <AchiraWordmark size="md" className="items-start" />
         </Link>
         <div className="flex flex-1 items-center justify-center">
-          <div className="flex w-full max-w-md items-center gap-2 rounded-full border border-achira-blue/12 bg-achira-paper/50 px-4 py-2 text-achira-blue/60 dark:border-achira-cream/10 dark:bg-achira-blue/10 dark:text-achira-cream/60">
-            <Search className="h-4 w-4" strokeWidth={1.25} aria-hidden />
-            <span className="text-xs">Хайх (жишээ UI)</span>
+          <div className="liquid-glass flex w-full max-w-md items-center gap-2 rounded-full px-4 py-2.5 text-achira-blue/55 dark:text-achira-cream/55">
+            <Search className="h-4 w-4" strokeWidth={1.5} aria-hidden />
+            <span className="text-xs">Хайх</span>
           </div>
         </div>
-        <nav className="flex items-center gap-1 sm:gap-2">
+        <nav className="flex items-center gap-1 sm:gap-1.5">
           {links.map((l) => (
             <Link
               key={l.href}
               href={l.href}
-              className="rounded-full px-3 py-2 text-sm text-achira-blue/80 transition-colors hover:bg-achira-blue/8 hover:text-achira-blue-dark dark:text-achira-cream/80 dark:hover:bg-achira-cream/8 dark:hover:text-achira-cream sm:px-4"
+              className="rounded-full px-3.5 py-2 text-sm text-achira-blue/75 transition-colors hover:bg-white/55 hover:text-achira-blue-dark dark:text-achira-cream/75 dark:hover:bg-white/8 dark:hover:text-achira-cream sm:px-4"
             >
               {l.label}
             </Link>
@@ -56,10 +56,10 @@ export function SiteHeader() {
           <AuthNavLinks />
           <Link
             href="/profile"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-achira-blue/12 bg-achira-paper/40 text-achira-blue/80 transition-colors hover:border-achira-blue/20 hover:bg-achira-blue/8 hover:text-achira-blue-dark dark:border-achira-cream/10 dark:bg-achira-cream/5 dark:text-achira-cream/80 dark:hover:border-achira-cream/20 dark:hover:bg-achira-cream/10 dark:hover:text-achira-cream"
+            className="ios-icon-btn"
             aria-label="Профайл"
           >
-            <UserRound className="h-4 w-4" strokeWidth={1.25} />
+            <UserRound className="h-4 w-4" strokeWidth={1.5} />
           </Link>
         </nav>
       </div>

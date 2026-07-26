@@ -45,10 +45,7 @@ export function HomeNewsPreview() {
             Мэдээ мэдээлэл
           </h2>
         </div>
-        <Link
-          href="/news"
-          className="text-[11px] font-medium uppercase tracking-[0.18em] text-achira-blue/55 transition-colors hover:text-achira-burgundy dark:text-achira-cream/50 dark:hover:text-achira-cream"
-        >
+        <Link href="/news" className="cream-pill">
           Бүгд
         </Link>
       </div>
@@ -58,9 +55,9 @@ export function HomeNewsPreview() {
           <li key={post.id}>
             <Link
               href={`/news/${post.slug}`}
-              className="premium-card flex items-start gap-3 px-4 py-3.5 transition-[transform,background-color] active:scale-[0.99] hover:bg-white/75 dark:hover:bg-achira-navy/35"
+              className="premium-card flex items-start gap-3 px-4 py-3.5 transition-[transform,background-color] active:scale-[0.99] hover:from-white/90"
             >
-              <div className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-achira-blue/8 text-achira-blue dark:bg-achira-cream/10 dark:text-achira-cream">
+              <div className="mt-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-full border border-achira-gold/20 bg-white/70 text-achira-blue shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] dark:border-achira-cream/10 dark:bg-achira-cream/10 dark:text-achira-cream">
                 <Newspaper className="h-4 w-4" strokeWidth={1.5} />
               </div>
               <div className="min-w-0 flex-1">

@@ -1,16 +1,19 @@
 @import "tailwindcss";
 
 @theme {
-  --color-achira-blue: #1e4f96;
+  --color-achira-blue: #1c4a8c;
   --color-achira-blue-light: #2a62b0;
-  --color-achira-blue-dark: #153a70;
-  --color-achira-cream: #f4efe6;
-  --color-achira-paper: #ebe4d8;
-  --color-achira-burgundy: #7c1f32;
-  --color-achira-ink: #1a2f4d;
-  --color-achira-navy: #0f1a2e;
-  --color-achira-gold: #c4a574;
-  --color-achira-champagne: #e8dcc8;
+  --color-achira-blue-dark: #123564;
+  --color-achira-cream: #f7f2ea;
+  --color-achira-paper: #efe6d8;
+  --color-achira-burgundy: #7a1e31;
+  --color-achira-ink: #172a45;
+  --color-achira-navy: #0d1728;
+  --color-achira-gold: #c9aa78;
+  --color-achira-champagne: #eadfcd;
+  --radius-ios: 1.75rem;
+  --radius-ios-lg: 2.25rem;
+  --radius-ios-xl: 2.75rem;
 }
 
 html {
@@ -22,37 +25,50 @@ html {
 body {
   padding-bottom: var(--keyboard-inset, 0px);
   transition: padding-bottom 0.2s ease;
+  background-color: var(--color-achira-cream);
   background-image:
     radial-gradient(
-      ellipse 120% 70% at 50% -20%,
-      color-mix(in srgb, var(--color-achira-champagne) 55%, transparent),
-      transparent 58%
+      ellipse 110% 65% at 50% -18%,
+      color-mix(in srgb, var(--color-achira-champagne) 70%, white),
+      transparent 60%
     ),
     radial-gradient(
-      ellipse 80% 50% at 100% 0%,
-      color-mix(in srgb, var(--color-achira-gold) 12%, transparent),
+      ellipse 55% 40% at 100% 8%,
+      color-mix(in srgb, var(--color-achira-gold) 18%, transparent),
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse 45% 35% at 0% 30%,
+      color-mix(in srgb, var(--color-achira-blue) 6%, transparent),
       transparent 50%
     ),
     linear-gradient(
       180deg,
-      color-mix(in srgb, var(--color-achira-cream) 92%, white),
-      var(--color-achira-cream) 42%,
-      color-mix(in srgb, var(--color-achira-paper) 35%, var(--color-achira-cream))
+      #fbf8f2 0%,
+      var(--color-achira-cream) 38%,
+      color-mix(in srgb, var(--color-achira-paper) 42%, var(--color-achira-cream))
+        100%
     );
   background-attachment: fixed;
 }
 
 .dark body {
+  background-color: var(--color-achira-navy);
   background-image:
     radial-gradient(
-      ellipse 100% 60% at 50% -15%,
-      color-mix(in srgb, var(--color-achira-blue-light) 22%, transparent),
-      transparent 55%
+      ellipse 100% 55% at 50% -12%,
+      color-mix(in srgb, var(--color-achira-blue-light) 28%, transparent),
+      transparent 58%
+    ),
+    radial-gradient(
+      ellipse 50% 40% at 90% 10%,
+      color-mix(in srgb, var(--color-achira-gold) 10%, transparent),
+      transparent 50%
     ),
     linear-gradient(
       180deg,
       var(--color-achira-navy),
-      color-mix(in srgb, var(--color-achira-navy) 88%, black)
+      color-mix(in srgb, var(--color-achira-navy) 86%, black)
     );
 }
 
@@ -110,7 +126,7 @@ body {
   }
 
   .admin-panel {
-    @apply rounded-2xl border border-achira-blue/10 bg-white/80 p-4 shadow-[0_8px_30px_rgba(21,58,112,0.04)] dark:border-achira-cream/8 dark:bg-achira-navy/35 dark:shadow-none sm:p-5;
+    @apply rounded-[1.75rem] border border-achira-gold/12 bg-white/75 p-4 shadow-[0_12px_40px_rgba(21,58,112,0.05),inset_0_1px_0_rgba(255,255,255,0.75)] backdrop-blur-xl dark:border-achira-cream/8 dark:bg-achira-navy/40 dark:shadow-none sm:p-5;
   }
 
   .admin-label {
@@ -118,7 +134,7 @@ body {
   }
 
   .admin-stat {
-    @apply rounded-2xl border border-achira-blue/8 bg-white/70 p-4 dark:border-achira-cream/8 dark:bg-achira-navy/30;
+    @apply rounded-[1.5rem] border border-achira-gold/10 bg-white/70 p-4 dark:border-achira-cream/8 dark:bg-achira-navy/30;
   }
 
   .admin-stat-label {
@@ -130,37 +146,124 @@ body {
   }
 
   .admin-list-item {
-    @apply flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-achira-blue/8 bg-white/70 px-4 py-3.5 dark:border-achira-cream/8 dark:bg-achira-navy/30;
+    @apply flex flex-wrap items-center justify-between gap-3 rounded-[1.5rem] border border-achira-gold/10 bg-white/70 px-4 py-3.5 dark:border-achira-cream/8 dark:bg-achira-navy/30;
   }
 
   .admin-upload-trigger {
-    @apply relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl border border-dashed border-achira-blue/15 bg-achira-paper/50 transition-colors hover:border-achira-blue/30 dark:border-achira-cream/12 dark:bg-achira-blue/10;
+    @apply relative h-24 w-24 shrink-0 overflow-hidden rounded-[1.35rem] border border-dashed border-achira-blue/15 bg-achira-paper/50 transition-colors hover:border-achira-blue/30 dark:border-achira-cream/12 dark:bg-achira-blue/10;
   }
 
   .admin-schedule-row {
-    @apply flex flex-wrap items-center gap-3 rounded-xl border border-achira-blue/8 bg-achira-paper/30 px-3 py-3 dark:border-achira-cream/8 dark:bg-achira-blue/8;
+    @apply flex flex-wrap items-center gap-3 rounded-2xl border border-achira-blue/8 bg-achira-paper/30 px-3 py-3 dark:border-achira-cream/8 dark:bg-achira-blue/8;
   }
 
   .admin-input {
-    @apply w-full rounded-xl border border-achira-blue/10 bg-white px-3 py-2.5 text-sm text-achira-ink outline-none transition-colors placeholder:text-achira-blue/35 focus:border-achira-blue/25 focus:ring-2 focus:ring-achira-blue/10 dark:border-achira-cream/10 dark:bg-achira-navy/50 dark:text-achira-cream dark:placeholder:text-achira-cream/30 dark:focus:border-achira-cream/20 dark:focus:ring-achira-cream/10;
+    @apply w-full rounded-2xl border border-achira-gold/15 bg-white/90 px-3.5 py-2.5 text-sm text-achira-ink outline-none transition-colors placeholder:text-achira-blue/35 focus:border-achira-blue/25 focus:ring-2 focus:ring-achira-blue/10 dark:border-achira-cream/10 dark:bg-achira-navy/50 dark:text-achira-cream dark:placeholder:text-achira-cream/30 dark:focus:border-achira-cream/20 dark:focus:ring-achira-cream/10;
   }
 
   .admin-btn-primary {
-    @apply rounded-xl bg-achira-blue px-4 py-2.5 text-sm font-medium text-achira-cream transition-opacity disabled:opacity-60 dark:bg-achira-cream dark:text-achira-blue-dark;
+    @apply rounded-full bg-achira-blue px-5 py-2.5 text-sm font-medium text-achira-cream transition-opacity disabled:opacity-60 dark:bg-achira-cream dark:text-achira-blue-dark;
   }
 
   .admin-btn-secondary {
-    @apply rounded-xl border border-achira-blue/10 px-4 py-2.5 text-sm font-medium text-achira-blue/75 transition-colors hover:bg-achira-blue/5 dark:border-achira-cream/10 dark:text-achira-cream/75 dark:hover:bg-achira-cream/5;
+    @apply rounded-full border border-achira-gold/20 px-5 py-2.5 text-sm font-medium text-achira-blue/75 transition-colors hover:bg-achira-blue/5 dark:border-achira-cream/10 dark:text-achira-cream/75 dark:hover:bg-achira-cream/5;
+  }
+
+  .liquid-glass {
+    background:
+      linear-gradient(
+        165deg,
+        rgba(255, 255, 255, 0.72) 0%,
+        rgba(255, 252, 247, 0.48) 42%,
+        rgba(239, 230, 216, 0.38) 100%
+      );
+    backdrop-filter: blur(28px) saturate(180%);
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.78) inset,
+      0 -1px 0 rgba(196, 165, 116, 0.12) inset,
+      0 18px 50px rgba(21, 58, 112, 0.08),
+      0 2px 8px rgba(21, 58, 112, 0.04);
+    border: 1px solid rgba(201, 170, 120, 0.22);
+  }
+
+  .dark .liquid-glass {
+    background:
+      linear-gradient(
+        165deg,
+        rgba(255, 255, 255, 0.1) 0%,
+        rgba(30, 79, 150, 0.18) 45%,
+        rgba(15, 26, 46, 0.55) 100%
+      );
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.12) inset,
+      0 22px 56px rgba(0, 0, 0, 0.4);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .liquid-glass-strong {
+    background:
+      linear-gradient(
+        160deg,
+        rgba(255, 255, 255, 0.86) 0%,
+        rgba(247, 242, 234, 0.72) 50%,
+        rgba(234, 223, 205, 0.55) 100%
+      );
+    backdrop-filter: blur(36px) saturate(190%);
+    -webkit-backdrop-filter: blur(36px) saturate(190%);
+    box-shadow:
+      0 1.5px 0 rgba(255, 255, 255, 0.9) inset,
+      0 -0.5px 0 rgba(201, 170, 120, 0.18) inset,
+      0 24px 64px rgba(21, 58, 112, 0.1),
+      0 4px 14px rgba(21, 58, 112, 0.05);
+    border: 1px solid rgba(201, 170, 120, 0.28);
+  }
+
+  .dark .liquid-glass-strong {
+    background:
+      linear-gradient(
+        160deg,
+        rgba(255, 255, 255, 0.14) 0%,
+        rgba(21, 58, 112, 0.35) 55%,
+        rgba(13, 23, 40, 0.72) 100%
+      );
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.14) inset,
+      0 28px 70px rgba(0, 0, 0, 0.5);
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+
+  .ios-capsule {
+    @apply rounded-full;
+  }
+
+  .ios-squircle {
+    border-radius: var(--radius-ios);
+  }
+
+  .ios-squircle-lg {
+    border-radius: var(--radius-ios-lg);
   }
 
   .premium-hero-frame {
-    @apply relative rounded-[1.65rem] p-px shadow-[0_24px_70px_rgba(21,58,112,0.14),0_2px_0_rgba(255,255,255,0.65)_inset] dark:shadow-[0_28px_90px_rgba(0,0,0,0.55),0_1px_0_rgba(255,255,255,0.06)_inset];
+    @apply relative p-px;
+    border-radius: var(--radius-ios-xl);
+    box-shadow:
+      0 28px 80px rgba(21, 58, 112, 0.14),
+      0 2px 0 rgba(255, 255, 255, 0.7) inset;
     background: linear-gradient(
       145deg,
-      color-mix(in srgb, var(--color-achira-gold) 42%, white),
-      color-mix(in srgb, var(--color-achira-blue) 18%, var(--color-achira-cream)),
-      color-mix(in srgb, var(--color-achira-burgundy) 22%, var(--color-achira-champagne))
+      color-mix(in srgb, var(--color-achira-gold) 48%, white),
+      color-mix(in srgb, var(--color-achira-champagne) 70%, white),
+      color-mix(in srgb, var(--color-achira-blue) 14%, var(--color-achira-cream)),
+      color-mix(in srgb, var(--color-achira-burgundy) 18%, var(--color-achira-champagne))
     );
+  }
+
+  .dark .premium-hero-frame {
+    box-shadow:
+      0 30px 90px rgba(0, 0, 0, 0.55),
+      0 1px 0 rgba(255, 255, 255, 0.08) inset;
   }
 
   .premium-grain {
@@ -175,52 +278,61 @@ body {
   }
 
   .premium-section-kicker {
-    @apply text-[8px] font-medium uppercase tracking-[0.32em] text-achira-blue/50 dark:text-achira-cream/45;
+    @apply text-[8px] font-medium uppercase tracking-[0.34em] text-achira-blue/45 dark:text-achira-cream/40;
   }
 
   .premium-section-title {
-    @apply font-[family-name:var(--font-display)] text-[13px] tracking-[0.06em] text-achira-blue-dark dark:text-achira-cream;
+    @apply font-[family-name:var(--font-display)] text-[15px] tracking-[0.04em] text-achira-blue-dark dark:text-achira-cream;
   }
 
   .premium-card {
-    @apply rounded-3xl border border-achira-blue/10 bg-achira-paper/55 shadow-[0_18px_60px_rgba(21,58,112,0.08)] backdrop-blur-md dark:border-achira-cream/10 dark:bg-achira-blue/8 dark:shadow-[0_20px_70px_rgba(0,0,0,0.38)];
+    border-radius: var(--radius-ios);
+    @apply border border-achira-gold/18 bg-gradient-to-b from-white/80 to-achira-paper/50 shadow-[0_18px_50px_rgba(21,58,112,0.07),inset_0_1px_0_rgba(255,255,255,0.75)] backdrop-blur-xl dark:border-achira-cream/10 dark:from-achira-navy/45 dark:to-achira-blue/10 dark:shadow-[0_22px_60px_rgba(0,0,0,0.4)];
   }
 
-  /* iOS Native Styling Tokens */
   .ios-backdrop-blur {
-    @apply backdrop-blur-2xl backdrop-saturate-200 bg-achira-cream/80 dark:bg-achira-navy/80;
+    @apply bg-achira-cream/70 backdrop-blur-2xl backdrop-saturate-200 dark:bg-achira-navy/75;
   }
 
   .ios-navigation-bar {
-    @apply sticky top-0 z-50 border-b border-black/[0.08] dark:border-white/[0.08] bg-achira-cream/80 dark:bg-achira-navy/85 backdrop-blur-3xl backdrop-saturate-150 pt-[env(safe-area-inset-top)] transition-all;
+    @apply sticky top-0 z-50 border-b border-achira-gold/10 bg-achira-cream/55 pt-[env(safe-area-inset-top)] backdrop-blur-3xl backdrop-saturate-180 transition-all dark:border-white/[0.06] dark:bg-achira-navy/55;
   }
 
   .ios-tab-bar {
-    @apply fixed inset-x-0 bottom-0 z-50 border-t border-black/[0.05] dark:border-white/[0.05] bg-achira-cream/80 dark:bg-achira-navy/85 backdrop-blur-3xl backdrop-saturate-150 pb-[max(0.65rem,env(safe-area-inset-bottom))] pt-1.5 px-3;
+    @apply fixed inset-x-0 bottom-0 z-50 border-t border-black/[0.04] bg-achira-cream/70 px-3 pb-[max(0.65rem,env(safe-area-inset-bottom))] pt-1.5 backdrop-blur-3xl backdrop-saturate-180 dark:border-white/[0.05] dark:bg-achira-navy/70;
   }
 
   .ios-list-group {
-    @apply overflow-hidden rounded-2xl bg-white/70 dark:bg-zinc-900/60 border border-achira-blue/5 dark:border-white/5 backdrop-blur-md shadow-[0_2px_12px_rgba(21,58,112,0.02)];
+    border-radius: var(--radius-ios);
+    @apply overflow-hidden border border-achira-gold/12 bg-white/65 shadow-[0_8px_28px_rgba(21,58,112,0.04),inset_0_1px_0_rgba(255,255,255,0.7)] backdrop-blur-xl dark:border-white/8 dark:bg-achira-navy/50;
   }
 
   .ios-list-row {
-    @apply flex items-center justify-between px-4 py-3.5 border-b border-achira-blue/5 dark:border-white/5 last:border-b-0 active:bg-black/[0.04] dark:active:bg-white/[0.04] transition-all;
+    @apply flex items-center justify-between border-b border-achira-blue/5 px-4 py-3.5 transition-all last:border-b-0 active:bg-black/[0.03] dark:border-white/5 dark:active:bg-white/[0.04];
   }
 
   .ios-btn-primary {
-    @apply rounded-2xl bg-[#007AFF] text-white font-semibold py-3.5 px-5 text-center text-sm transition-all duration-150 active:scale-[0.98] active:opacity-85 shadow-[0_4px_16px_rgba(0,122,255,0.22)];
+    @apply rounded-full bg-achira-blue px-5 py-3.5 text-center text-sm font-semibold text-achira-cream shadow-[0_10px_28px_rgba(28,74,140,0.28)] transition-all duration-150 active:scale-[0.98] active:opacity-90 dark:bg-achira-cream dark:text-achira-blue-dark;
   }
 
   .ios-btn-action {
-    @apply font-medium text-[#007AFF] dark:text-[#0A84FF] transition-all active:opacity-60 text-sm;
+    @apply text-sm font-medium text-achira-blue transition-all active:opacity-60 dark:text-achira-cream;
   }
 
   .ios-input-group {
-    @apply w-full rounded-2xl bg-black/[0.03] dark:bg-white/[0.04] px-4 py-3.5 text-sm border-none outline-none focus:ring-1 focus:ring-[#007AFF]/25 transition-all;
+    @apply w-full rounded-full border border-achira-gold/15 bg-white/55 px-4 py-3.5 text-sm outline-none backdrop-blur-xl transition-all focus:ring-2 focus:ring-achira-blue/15 dark:border-white/10 dark:bg-white/[0.06];
+  }
+
+  .ios-icon-btn {
+    @apply grid h-10 w-10 place-items-center rounded-full border border-achira-gold/20 bg-white/55 text-achira-blue/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] backdrop-blur-xl transition-all active:scale-90 dark:border-white/10 dark:bg-white/[0.08] dark:text-achira-cream/75;
   }
 
   .cream-surface {
-    @apply rounded-3xl border border-achira-gold/15 bg-gradient-to-b from-white/75 to-achira-paper/55 shadow-[0_16px_48px_rgba(21,58,112,0.06),0_1px_0_rgba(255,255,255,0.7)_inset] dark:border-achira-cream/10 dark:from-achira-navy/50 dark:to-achira-blue/10 dark:shadow-none;
+    border-radius: var(--radius-ios-lg);
+    @apply border border-achira-gold/18 bg-gradient-to-b from-white/80 to-achira-paper/55 shadow-[0_20px_56px_rgba(21,58,112,0.07),inset_0_1px_0_rgba(255,255,255,0.8)] dark:border-achira-cream/10 dark:from-achira-navy/50 dark:to-achira-blue/10 dark:shadow-none;
+  }
+
+  .cream-pill {
+    @apply inline-flex items-center gap-1 rounded-full border border-achira-gold/25 bg-gradient-to-r from-white/80 to-achira-champagne/40 px-3.5 py-1.5 text-[8px] font-semibold uppercase tracking-[0.2em] text-achira-blue-dark shadow-[0_8px_24px_rgba(21,58,112,0.08),inset_0_1px_0_rgba(255,255,255,0.85)] backdrop-blur-md dark:border-achira-gold/20 dark:from-achira-navy/80 dark:to-achira-blue/25 dark:text-achira-cream;
   }
 }
-

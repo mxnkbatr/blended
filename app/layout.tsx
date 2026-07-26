@@ -40,7 +40,7 @@ export const metadata: Metadata = {
   description:
     "Achira — гар урлалын сэтгэлгээтэй barbershop. Хан уул дүүрэг, 15р хороо, 10р байр. Цаг авах, дэлгүүр.",
   applicationName: "Achira",
-  themeColor: "#1e4f96",
+  themeColor: "#f7f2ea",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",

@@ -56,7 +56,7 @@ export function Hero() {
           {infoDesktop.map((item) => (
             <div
               key={item.label}
-              className="rounded-2xl border border-achira-blue/12 bg-achira-paper/60 px-4 py-4 text-left backdrop-blur-sm dark:border-achira-cream/10 dark:bg-achira-blue/10"
+              className="premium-card px-4 py-4 text-left"
             >
               <p className="text-[10px] font-medium uppercase tracking-widest text-achira-blue/55 dark:text-achira-cream/50">
                 {item.label}
@@ -80,7 +80,7 @@ export function Hero() {
         <div className="mt-14 flex flex-col items-center gap-4 sm:mt-16">
           <Link
             href="/booking"
-            className="inline-flex min-w-[220px] items-center justify-center rounded-full bg-achira-blue px-10 py-4 text-sm font-semibold uppercase tracking-widest text-achira-cream shadow-[0_8px_32px_rgba(30,79,150,0.25)] transition-[transform,background-color] hover:bg-achira-blue-dark hover:scale-[1.02] active:scale-[0.98] dark:bg-achira-cream dark:text-achira-blue-dark dark:hover:bg-achira-paper"
+            className="inline-flex min-w-[220px] items-center justify-center rounded-full bg-achira-blue px-10 py-4 text-sm font-semibold uppercase tracking-widest text-achira-cream shadow-[0_14px_40px_rgba(28,74,140,0.3),inset_0_1px_0_rgba(255,255,255,0.25)] transition-[transform,background-color] hover:scale-[1.02] hover:bg-achira-blue-dark active:scale-[0.98] dark:bg-achira-cream dark:text-achira-blue-dark dark:hover:bg-achira-paper"
           >
             Цаг авах
           </Link>
