@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* next-themes нь .dark class тавьдаг тул dark: variant-ийг class-д суурилуулна */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-achira-blue: #1c4a8c;
   --color-achira-blue-light: #2a62b0;
@@ -294,10 +297,6 @@ body {
     @apply bg-achira-cream/70 backdrop-blur-2xl backdrop-saturate-200 dark:bg-achira-navy/75;
   }
 
-  .ios-navigation-bar {
-    @apply sticky top-0 z-50 border-b border-achira-gold/10 bg-achira-cream/55 pt-[env(safe-area-inset-top)] backdrop-blur-3xl backdrop-saturate-180 transition-all dark:border-white/[0.06] dark:bg-achira-navy/55;
-  }
-
   .ios-tab-bar {
     @apply fixed inset-x-0 bottom-0 z-50 border-t border-black/[0.04] bg-achira-cream/70 px-3 pb-[max(0.65rem,env(safe-area-inset-bottom))] pt-1.5 backdrop-blur-3xl backdrop-saturate-180 dark:border-white/[0.05] dark:bg-achira-navy/70;
   }
@@ -324,7 +323,7 @@ body {
   }
 
   .ios-icon-btn {
-    @apply grid h-10 w-10 place-items-center rounded-full border border-achira-gold/20 bg-white/55 text-achira-blue/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] backdrop-blur-xl transition-all active:scale-90 dark:border-white/10 dark:bg-white/[0.08] dark:text-achira-cream/75;
+    @apply grid h-9 w-9 place-items-center rounded-lg text-achira-blue/55 transition-colors hover:bg-achira-paper/50 hover:text-achira-blue-dark active:scale-95 dark:text-achira-cream/55 dark:hover:bg-white/[0.06] dark:hover:text-achira-cream;
   }
 
   .cream-surface {

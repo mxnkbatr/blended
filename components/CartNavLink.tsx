@@ -8,11 +8,11 @@ export function CartNavLink() {
   return (
     <Link
       href="/checkout"
-      className="relative rounded-full px-3 py-2 text-sm text-zinc-300 transition-colors hover:bg-zinc-900 hover:text-white sm:px-4"
+      className="relative px-3 py-2 text-[13px] tracking-wide text-achira-blue/55 transition-colors hover:text-achira-blue-dark dark:text-achira-cream/50 dark:hover:text-achira-cream"
     >
       Сагс
       {count > 0 && (
-        <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-white px-1 text-[10px] font-bold text-black">
+        <span className="absolute -right-0.5 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-achira-burgundy/90 px-1 text-[9px] font-semibold text-white">
           {count > 9 ? "9+" : count}
         </span>
       )}

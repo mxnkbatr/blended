@@ -17,7 +17,7 @@ type InfoCard = {
 const infoCards: InfoCard[] = [
   {
     label: "Цагийн хуваарь",
-    value: "10:00 — 22:00",
+    value: "07:00 — 14:00",
     Icon: Clock,
   },
   {

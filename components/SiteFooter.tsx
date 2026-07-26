@@ -31,7 +31,7 @@ export function SiteFooter() {
               >
                 88668612
               </a>
-              <p>10:00 — 22:00</p>
+              <p>07:00 — 14:00</p>
             </div>
           </div>
 
@@ -96,14 +96,6 @@ export function SiteFooter() {
                       href="/booking"
                     >
                       Цаг авах
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      className="transition-colors hover:text-achira-blue-dark dark:hover:text-achira-cream"
-                      href="/shop"
-                    >
-                      Дэлгүүр
                     </Link>
                   </li>
                   <li>
