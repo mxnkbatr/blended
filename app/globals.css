@@ -22,6 +22,38 @@ html {
 body {
   padding-bottom: var(--keyboard-inset, 0px);
   transition: padding-bottom 0.2s ease;
+  background-image:
+    radial-gradient(
+      ellipse 120% 70% at 50% -20%,
+      color-mix(in srgb, var(--color-achira-champagne) 55%, transparent),
+      transparent 58%
+    ),
+    radial-gradient(
+      ellipse 80% 50% at 100% 0%,
+      color-mix(in srgb, var(--color-achira-gold) 12%, transparent),
+      transparent 50%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-achira-cream) 92%, white),
+      var(--color-achira-cream) 42%,
+      color-mix(in srgb, var(--color-achira-paper) 35%, var(--color-achira-cream))
+    );
+  background-attachment: fixed;
+}
+
+.dark body {
+  background-image:
+    radial-gradient(
+      ellipse 100% 60% at 50% -15%,
+      color-mix(in srgb, var(--color-achira-blue-light) 22%, transparent),
+      transparent 55%
+    ),
+    linear-gradient(
+      180deg,
+      var(--color-achira-navy),
+      color-mix(in srgb, var(--color-achira-navy) 88%, black)
+    );
 }
 
 @media (hover: none) and (pointer: coarse) {
@@ -153,4 +185,42 @@ body {
   .premium-card {
     @apply rounded-3xl border border-achira-blue/10 bg-achira-paper/55 shadow-[0_18px_60px_rgba(21,58,112,0.08)] backdrop-blur-md dark:border-achira-cream/10 dark:bg-achira-blue/8 dark:shadow-[0_20px_70px_rgba(0,0,0,0.38)];
   }
+
+  /* iOS Native Styling Tokens */
+  .ios-backdrop-blur {
+    @apply backdrop-blur-2xl backdrop-saturate-200 bg-achira-cream/80 dark:bg-achira-navy/80;
+  }
+
+  .ios-navigation-bar {
+    @apply sticky top-0 z-50 border-b border-black/[0.08] dark:border-white/[0.08] bg-achira-cream/80 dark:bg-achira-navy/85 backdrop-blur-3xl backdrop-saturate-150 pt-[env(safe-area-inset-top)] transition-all;
+  }
+
+  .ios-tab-bar {
+    @apply fixed inset-x-0 bottom-0 z-50 border-t border-black/[0.05] dark:border-white/[0.05] bg-achira-cream/80 dark:bg-achira-navy/85 backdrop-blur-3xl backdrop-saturate-150 pb-[max(0.65rem,env(safe-area-inset-bottom))] pt-1.5 px-3;
+  }
+
+  .ios-list-group {
+    @apply overflow-hidden rounded-2xl bg-white/70 dark:bg-zinc-900/60 border border-achira-blue/5 dark:border-white/5 backdrop-blur-md shadow-[0_2px_12px_rgba(21,58,112,0.02)];
+  }
+
+  .ios-list-row {
+    @apply flex items-center justify-between px-4 py-3.5 border-b border-achira-blue/5 dark:border-white/5 last:border-b-0 active:bg-black/[0.04] dark:active:bg-white/[0.04] transition-all;
+  }
+
+  .ios-btn-primary {
+    @apply rounded-2xl bg-[#007AFF] text-white font-semibold py-3.5 px-5 text-center text-sm transition-all duration-150 active:scale-[0.98] active:opacity-85 shadow-[0_4px_16px_rgba(0,122,255,0.22)];
+  }
+
+  .ios-btn-action {
+    @apply font-medium text-[#007AFF] dark:text-[#0A84FF] transition-all active:opacity-60 text-sm;
+  }
+
+  .ios-input-group {
+    @apply w-full rounded-2xl bg-black/[0.03] dark:bg-white/[0.04] px-4 py-3.5 text-sm border-none outline-none focus:ring-1 focus:ring-[#007AFF]/25 transition-all;
+  }
+
+  .cream-surface {
+    @apply rounded-3xl border border-achira-gold/15 bg-gradient-to-b from-white/75 to-achira-paper/55 shadow-[0_16px_48px_rgba(21,58,112,0.06),0_1px_0_rgba(255,255,255,0.7)_inset] dark:border-achira-cream/10 dark:from-achira-navy/50 dark:to-achira-blue/10 dark:shadow-none;
+  }
 }
+

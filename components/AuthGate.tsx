@@ -5,10 +5,24 @@ import { useEffect, useRef } from "react";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { LoginForm } from "@/components/LoginForm";
 
-const PUBLIC_PATHS = ["/login", "/register", "/privacy", "/terms", "/delete-account"] as const;
+const PUBLIC_PATHS = [
+  "/login",
+  "/register",
+  "/privacy",
+  "/terms",
+  "/delete-account",
+] as const;
+
+const AUTH_ENTRY_PATHS = ["/login", "/register"] as const;
 
 function isPublicPath(pathname: string) {
   return PUBLIC_PATHS.some(
+    (p) => pathname === p || pathname.startsWith(`${p}/`),
+  );
+}
+
+function isAuthEntryPath(pathname: string) {
+  return AUTH_ENTRY_PATHS.some(
     (p) => pathname === p || pathname.startsWith(`${p}/`),
   );
 }
@@ -19,12 +33,14 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   const isPublic = isPublicPath(pathname);
   const sentHome = useRef(false);
 
-  // Нэвтэрсэн хэрэглэгч login/register дээр байвал нүүр рүү (router биш — loop үгүй)
+  // Нэвтэрсэн хэрэглэгч login/register дээр байвал нүүр рүү
   useEffect(() => {
-    if (loading || !user || !isPublic || sentHome.current) return;
+    if (loading || !user || !isAuthEntryPath(pathname) || sentHome.current) {
+      return;
+    }
     sentHome.current = true;
     window.location.replace("/");
-  }, [user, loading, isPublic]);
+  }, [user, loading, pathname]);
 
   if (loading) {
     return (
@@ -34,7 +50,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Нэвтрээгүй — хамгаалагдсан хуудсууд дээр login form (redirect хийхгүй)
+  // Нэвтрээгүй — хамгаалагдсан хуудсууд дээр login form
   if (!user && !isPublic) {
     return <LoginForm />;
   }

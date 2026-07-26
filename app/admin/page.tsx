@@ -42,6 +42,11 @@ const cards = [
     statLabel: "төлбөр хүлээгдэж",
   },
   {
+    href: "/admin/news",
+    title: "Мэдээ",
+    desc: "Апп доторх мэдээ мэдээлэл",
+  },
+  {
     href: "/admin/promos",
     title: "Промо код",
     desc: "Хөнгөлөлтийн код удирдах",

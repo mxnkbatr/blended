@@ -30,6 +30,7 @@
     "db:barbers": "tsx scripts/apply-barber-schedule.ts",
     "db:barber-booking-price": "tsx scripts/apply-barber-booking-price.ts",
     "db:promos": "tsx scripts/apply-promo-notifications.ts",
+    "db:news": "tsx scripts/apply-news.ts",
     "db:appointments-fix": "tsx scripts/apply-appointments-fix.ts",
     "db:appointment-qpay": "tsx scripts/apply-appointment-qpay.ts",
     "db:push-tokens": "tsx scripts/apply-push-tokens.ts",

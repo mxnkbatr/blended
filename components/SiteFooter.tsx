@@ -45,17 +45,25 @@ export function SiteFooter() {
                   <li>
                     <Link
                       className="transition-colors hover:text-achira-blue-dark dark:hover:text-achira-cream"
-                      href="/"
+                      href="/news"
                     >
-                      Бидний тухай
+                      Мэдээ мэдээлэл
                     </Link>
                   </li>
                   <li>
                     <Link
                       className="transition-colors hover:text-achira-blue-dark dark:hover:text-achira-cream"
-                      href="/"
+                      href="/terms"
                     >
                       Үйлчилгээний нөхцөл
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      className="transition-colors hover:text-achira-blue-dark dark:hover:text-achira-cream"
+                      href="/privacy"
+                    >
+                      Нууцлал
                     </Link>
                   </li>
                   <li>

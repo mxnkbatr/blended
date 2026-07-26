@@ -10,6 +10,7 @@ import {
   Lock,
   LogOut,
   MapPin,
+  Newspaper,
   Package,
   Settings,
   ShoppingBag,
@@ -193,7 +194,7 @@ export function ProfileClient() {
         </Link>
       )}
 
-      <div className="mt-4 grid grid-cols-2 gap-3">
+      <div className="mt-4 grid grid-cols-3 gap-3">
         <Link
           href="/checkout"
           className="flex flex-col items-center gap-2 rounded-2xl border border-achira-blue/10 bg-white/60 px-3 py-4 active:scale-[0.98] dark:border-achira-cream/10 dark:bg-achira-navy/40"
@@ -210,6 +211,15 @@ export function ProfileClient() {
           <CalendarDays className="h-5 w-5 text-achira-blue dark:text-achira-cream" />
           <span className="text-[11px] font-medium text-achira-blue-dark dark:text-achira-cream">
             Цаг авах
+          </span>
+        </Link>
+        <Link
+          href="/news"
+          className="flex flex-col items-center gap-2 rounded-2xl border border-achira-blue/10 bg-white/60 px-3 py-4 active:scale-[0.98] dark:border-achira-cream/10 dark:bg-achira-navy/40"
+        >
+          <Newspaper className="h-5 w-5 text-achira-blue dark:text-achira-cream" />
+          <span className="text-[11px] font-medium text-achira-blue-dark dark:text-achira-cream">
+            Мэдээ
           </span>
         </Link>
       </div>

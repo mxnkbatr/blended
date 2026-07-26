@@ -4,6 +4,7 @@ import { AchiraWordmark } from "./AchiraWordmark";
 import { HomeBanner } from "./HomeBanner";
 import { HomeBarberSlider } from "./HomeBarberSlider";
 import { HomeBestSellerGrid } from "./HomeBestSellerGrid";
+import { HomeNewsPreview } from "./HomeNewsPreview";
 
 const infoDesktop: {
   label: string;
@@ -39,6 +40,7 @@ export function Hero() {
         <HomeBanner />
         <HomeBarberSlider />
         <HomeBestSellerGrid />
+        <HomeNewsPreview />
       </div>
 
       {/* Desktop / notebook */}
@@ -82,12 +84,24 @@ export function Hero() {
           >
             Цаг авах
           </Link>
-          <Link
-            href="/shop"
-            className="text-sm text-achira-blue/60 underline-offset-4 transition-colors hover:text-achira-burgundy hover:underline dark:text-achira-cream/60 dark:hover:text-achira-cream"
-          >
-            Дэлгүүр үзэх
-          </Link>
+          <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
+            <Link
+              href="/shop"
+              className="text-sm text-achira-blue/60 underline-offset-4 transition-colors hover:text-achira-burgundy hover:underline dark:text-achira-cream/60 dark:hover:text-achira-cream"
+            >
+              Дэлгүүр үзэх
+            </Link>
+            <Link
+              href="/news"
+              className="text-sm text-achira-blue/60 underline-offset-4 transition-colors hover:text-achira-burgundy hover:underline dark:text-achira-cream/60 dark:hover:text-achira-cream"
+            >
+              Мэдээ мэдээлэл
+            </Link>
+          </div>
+        </div>
+
+        <div className="mt-16 w-full max-w-lg text-left">
+          <HomeNewsPreview />
         </div>
       </div>
     </section>

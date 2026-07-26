@@ -12,6 +12,7 @@ const links = [
   { href: "/", label: "Нүүр" },
   { href: "/shop", label: "Бүх бараа" },
   { href: "/booking", label: "Цаг авах" },
+  { href: "/news", label: "Мэдээ" },
 ];
 
 export function SiteHeader() {

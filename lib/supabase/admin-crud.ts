@@ -369,3 +369,63 @@ export async function adminFetchNotifications(): Promise<AdminNotificationRow[]>
   if (error) throw new Error(error.message);
   return (data ?? []) as AdminNotificationRow[];
 }
+
+export type NewsPostRow = {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string;
+  body: string;
+  cover_image_url: string | null;
+  published: boolean;
+  published_at: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export async function adminFetchNewsPosts(): Promise<NewsPostRow[]> {
+  const { data, error } = await client()
+    .from("news_posts")
+    .select(
+      "id, slug, title, excerpt, body, cover_image_url, published, published_at, created_at, updated_at",
+    )
+    .order("published_at", { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data ?? []) as NewsPostRow[];
+}
+
+export async function adminUpsertNewsPost(
+  input: Partial<NewsPostRow> & {
+    slug: string;
+    title: string;
+    body: string;
+  },
+): Promise<void> {
+  const payload = {
+    slug: input.slug.trim(),
+    title: input.title.trim(),
+    excerpt: (input.excerpt ?? "").trim(),
+    body: input.body.trim(),
+    cover_image_url: input.cover_image_url?.trim() || null,
+    published: input.published ?? true,
+    published_at: input.published_at ?? new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  };
+
+  if (input.id) {
+    const { error } = await client()
+      .from("news_posts")
+      .update(payload)
+      .eq("id", input.id);
+    if (error) throw new Error(error.message);
+    return;
+  }
+
+  const { error } = await client().from("news_posts").insert(payload);
+  if (error) throw new Error(error.message);
+}
+
+export async function adminDeleteNewsPost(id: string): Promise<void> {
+  const { error } = await client().from("news_posts").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+}
