@@ -197,7 +197,7 @@ export function ProfileClient() {
       <div className="mt-4 grid grid-cols-3 gap-3">
         <Link
           href="/checkout"
-          className="flex flex-col items-center gap-2 rounded-2xl border border-achira-blue/10 bg-white/60 px-3 py-4 active:scale-[0.98] dark:border-achira-cream/10 dark:bg-achira-navy/40"
+          className="flex flex-col items-center gap-2 rounded-[1.5rem] border border-achira-gold/15 bg-white/65 px-3 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] backdrop-blur-md active:scale-[0.98] dark:border-achira-cream/10 dark:bg-achira-navy/40"
         >
           <ShoppingBag className="h-5 w-5 text-achira-blue dark:text-achira-cream" />
           <span className="text-[11px] font-medium text-achira-blue-dark dark:text-achira-cream">
@@ -206,7 +206,7 @@ export function ProfileClient() {
         </Link>
         <Link
           href="/booking"
-          className="flex flex-col items-center gap-2 rounded-2xl border border-achira-blue/10 bg-white/60 px-3 py-4 active:scale-[0.98] dark:border-achira-cream/10 dark:bg-achira-navy/40"
+          className="flex flex-col items-center gap-2 rounded-[1.5rem] border border-achira-gold/15 bg-white/65 px-3 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] backdrop-blur-md active:scale-[0.98] dark:border-achira-cream/10 dark:bg-achira-navy/40"
         >
           <CalendarDays className="h-5 w-5 text-achira-blue dark:text-achira-cream" />
           <span className="text-[11px] font-medium text-achira-blue-dark dark:text-achira-cream">
@@ -215,7 +215,7 @@ export function ProfileClient() {
         </Link>
         <Link
           href="/news"
-          className="flex flex-col items-center gap-2 rounded-2xl border border-achira-blue/10 bg-white/60 px-3 py-4 active:scale-[0.98] dark:border-achira-cream/10 dark:bg-achira-navy/40"
+          className="flex flex-col items-center gap-2 rounded-[1.5rem] border border-achira-gold/15 bg-white/65 px-3 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] backdrop-blur-md active:scale-[0.98] dark:border-achira-cream/10 dark:bg-achira-navy/40"
         >
           <Newspaper className="h-5 w-5 text-achira-blue dark:text-achira-cream" />
           <span className="text-[11px] font-medium text-achira-blue-dark dark:text-achira-cream">
