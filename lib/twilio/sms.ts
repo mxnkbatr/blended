@@ -92,7 +92,7 @@ export function buildAppointmentOwnerSms(input: {
     hour12: false,
   }).format(input.endsAt);
 
-  return `ACHIRA ARTIST: Шинэ цаг захиалга. Бабер: ${input.barberName}. ${dateLabel}, ${startTime}-${endTime}. Захиалагч: ${input.customerName} (${input.customerPhone}).`;
+  return `ACHIRA ARTIST: Шинэ цаг захиалга. Барбер: ${input.barberName}. ${dateLabel}, ${startTime}-${endTime}. Захиалагч: ${input.customerName} (${input.customerPhone}).`;
 }
 
 export function buildAppointmentCustomerSms(input: {
@@ -126,5 +126,5 @@ export function buildAppointmentCustomerSms(input: {
 
   const ref = input.paymentRef ? ` Дугаар: ${input.paymentRef}.` : "";
 
-  return `achira.mn: Сайн байна уу ${input.customerName}, таны ${dateLabel} ${startTime}-${endTime} цагийн захиалга баталгаажлаа. Бабер: ${input.barberName}.${ref} Цагтаа ирнэ үү, хоцрохгүй байна уу. Баярлалаа!`;
+  return `achira.mn: Сайн байна уу ${input.customerName}, таны ${dateLabel} ${startTime}-${endTime} цагийн захиалга баталгаажлаа. Барбер: ${input.barberName}.${ref} Цагтаа ирнэ үү, хоцрохгүй байна уу. Баярлалаа!`;
 }

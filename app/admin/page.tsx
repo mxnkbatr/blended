@@ -17,7 +17,7 @@ function formatMnt(n: number) {
 const cards = [
   {
     href: "/admin/barbers",
-    title: "Баберууд",
+    title: "Барберууд",
     desc: "Зураг, цагийн хуваарь",
     statKey: "barbers" as const,
   },

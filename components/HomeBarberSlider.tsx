@@ -15,7 +15,7 @@ export function HomeBarberSlider() {
     <div className="mt-7 w-full text-left">
       <div className="mb-3 flex items-end justify-between gap-2 px-0.5">
         <div>
-          <p className="premium-section-kicker">Баберууд</p>
+          <p className="premium-section-kicker">Барберууд</p>
           <p className="premium-section-title mt-1">Манай баг</p>
         </div>
         <Link

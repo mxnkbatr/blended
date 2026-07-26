@@ -13,7 +13,7 @@ export function SiteFooter() {
               <AchiraWordmark size="md" className="items-start" />
             </div>
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-achira-blue/65 dark:text-achira-cream/60">
-              Гар урлалын сэтгэлгээтэй babershop ба үс арчилгааны бүтээгдэхүүн.
+              Гар урлалын сэтгэлгээтэй barbershop ба үс арчилгааны бүтээгдэхүүн.
               Шуурхай үйлчилгээ, найдвартай захиалга.
             </p>
             <div className="mt-5 space-y-1 text-sm text-achira-blue/65 dark:text-achira-cream/60">

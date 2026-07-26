@@ -37,7 +37,7 @@ export async function createAppointmentWithNotify(
   }
 
   if (!input.barberId || !input.date || !input.time) {
-    return { ok: false, error: "Бабер, огноо, цаг сонгоно уу." };
+    return { ok: false, error: "Барбер, огноо, цаг сонгоно уу." };
   }
 
   const supabase = createSupabaseAdminClient();
@@ -52,15 +52,15 @@ export async function createAppointmentWithNotify(
     .maybeSingle();
 
   if (barberError || !barber) {
-    return { ok: false, error: "Бабер олдсонгүй." };
+    return { ok: false, error: "Барбер олдсонгүй." };
   }
 
   if (!barber.active) {
-    return { ok: false, error: "Энэ бабер одоогоор идэвхгүй байна." };
+    return { ok: false, error: "Энэ барбер одоогоор идэвхгүй байна." };
   }
 
   if (!isBarberWorkingOnDate(barber.schedule, input.date)) {
-    return { ok: false, error: "Энэ өдөр бабер ажиллахгүй." };
+    return { ok: false, error: "Энэ өдөр барбер ажиллахгүй." };
   }
 
   if (!isSlotWithinSchedule(barber.schedule, input.date, input.time)) {

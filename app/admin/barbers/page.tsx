@@ -112,7 +112,7 @@ export default function AdminBarbersPage() {
       });
       setForm(null);
       setEditingId(null);
-      setSuccess("Бабер хадгалагдлаа.");
+      setSuccess("Барбер хадгалагдлаа.");
       await hapticSuccess();
       await load();
     } catch (err) {
@@ -123,7 +123,7 @@ export default function AdminBarbersPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Энэ баберыг устгах уу?")) return;
+    if (!confirm("Энэ барберыг устгах уу?")) return;
     setError(null);
     try {
       await adminDeleteBarber(id);
@@ -136,13 +136,13 @@ export default function AdminBarbersPage() {
   return (
     <div>
       <AdminPageHeader
-        title="Баберууд"
+        title="Барберууд"
         description="Зураг, танилцуулга, ажлын цаг, захиалгын төлбөр."
         action={
           !form ? (
             <button type="button" onClick={openCreate} className="admin-btn-primary inline-flex items-center gap-2">
               <Plus className="h-4 w-4" />
-              Шинэ бабер
+              Шинэ барбер
             </button>
           ) : undefined
         }
@@ -153,7 +153,7 @@ export default function AdminBarbersPage() {
       {form && (
         <form onSubmit={handleSave} className="mt-5 space-y-5 border-t border-achira-blue/8 pt-5 dark:border-achira-cream/8">
           <p className="text-base font-medium text-achira-blue-dark dark:text-achira-cream">
-            {editingId ? "Бабер засах" : "Шинэ бабер нэмэх"}
+            {editingId ? "Барбер засах" : "Шинэ барбер нэмэх"}
           </p>
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -195,7 +195,7 @@ export default function AdminBarbersPage() {
                 placeholder="50000"
               />
               <p className="mt-1 text-xs text-achira-blue/50 dark:text-achira-cream/45">
-                QPay-ээр төлөх урьдчилсан төлбөр. Бабер бүр өөр үнэтэй байж болно.
+                QPay-ээр төлөх урьдчилсан төлбөр. Барбер бүр өөр үнэтэй байж болно.
               </p>
             </label>
           </div>
@@ -252,7 +252,7 @@ export default function AdminBarbersPage() {
         <div className="mt-6 h-28 animate-pulse rounded-2xl bg-achira-blue/5" />
       ) : rows.length === 0 ? (
         <p className="mt-8 text-sm text-achira-blue/55 dark:text-achira-cream/50">
-          Одоогоор бабер байхгүй. «Шинэ бабер» товчоор нэмнэ үү.
+          Одоогоор барбер байхгүй. «Шинэ барбер» товчоор нэмнэ үү.
         </p>
       ) : (
         <ul className={`space-y-3 ${form ? "mt-6 border-t border-achira-blue/8 pt-6 dark:border-achira-cream/8" : "mt-5"}`}>

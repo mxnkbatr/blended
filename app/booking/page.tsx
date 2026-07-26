@@ -4,7 +4,7 @@ import Link from "next/link";
 
 export const metadata = {
   title: "Цаг авах",
-  description: "Achira Artist babershop — цаг захиалга",
+  description: "Achira Artist barbershop — цаг захиалга",
 };
 
 type InfoCard = {
@@ -50,7 +50,7 @@ export default function BookingPage() {
             Цаг авах
           </h1>
           <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-achira-blue/65 dark:text-achira-cream/60 md:text-base">
-            Baber сонгож, өдөр болон цагаа сонгоно уу. Баталгаажуулахад нэр, утас
+            Barber сонгож, өдөр болон цагаа сонгоно уу. Баталгаажуулахад нэр, утас
             шаардлагатай.
           </p>
         </header>

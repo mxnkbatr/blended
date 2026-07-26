@@ -132,7 +132,7 @@ export function validatePromoRowForBooking(
   if (promo.barber_ids?.length && !promo.barber_ids.includes(barberId)) {
     return {
       ok: false,
-      error: "Энэ промо код сонгосон баберт хамаарахгүй.",
+      error: "Энэ промо код сонгосон барберт хамаарахгүй.",
     };
   }
 

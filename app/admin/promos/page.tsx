@@ -107,7 +107,7 @@ export default function AdminPromosPage() {
     <div>
       <AdminPageHeader
         title="Промо код"
-        description="Код үүсгэж, бабер/бараа сонгож, хөнгөлөлтийн хувь тохируулна."
+        description="Код үүсгэж, барбер/бараа сонгож, хөнгөлөлтийн хувь тохируулна."
         action={
           !form ? (
             <button
@@ -230,7 +230,7 @@ export default function AdminPromosPage() {
 
           <div className="grid gap-4 lg:grid-cols-2">
             <div className="rounded-xl border border-achira-blue/8 p-3 dark:border-achira-cream/8">
-              <p className="admin-label">Бабер (хоосон = бүгд)</p>
+              <p className="admin-label">Барбер (хоосон = бүгд)</p>
               <div className="mt-2 max-h-40 space-y-2 overflow-y-auto text-sm">
                 {barbers.map((barber) => (
                   <label key={barber.id} className="flex items-center gap-2">

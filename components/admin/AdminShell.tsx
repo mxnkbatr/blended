@@ -15,7 +15,7 @@ import {
 
 const links = [
   { href: "/admin", label: "Тойм", Icon: LayoutDashboard, exact: true },
-  { href: "/admin/barbers", label: "Бабер", Icon: Scissors },
+  { href: "/admin/barbers", label: "Барбер", Icon: Scissors },
   { href: "/admin/products", label: "Бараа", Icon: Package },
   { href: "/admin/promos", label: "Промо", Icon: Tag },
   { href: "/admin/notifications", label: "Мэдэгдэл", Icon: Megaphone },

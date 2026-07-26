@@ -68,7 +68,7 @@ function scrollToRef(ref: React.RefObject<HTMLElement | null>) {
 
 function Stepper({ step }: { step: 1 | 2 | 3 }) {
   const steps = [
-    { n: 1, label: "Baber", Icon: Scissors },
+    { n: 1, label: "Barber", Icon: Scissors },
     { n: 2, label: "Өдөр", Icon: CalendarDays },
     { n: 3, label: "Цаг", Icon: Clock },
   ] as const;
@@ -86,7 +86,7 @@ function Stepper({ step }: { step: 1 | 2 | 3 }) {
             Алхам {step} / 3
           </p>
           <p className="truncate text-[9px] font-medium uppercase tracking-[0.2em] text-achira-blue/50 dark:text-achira-cream/45">
-            {step === 1 ? "Baber сонгох" : step === 2 ? "Өдөр сонгох" : "Цаг сонгох"}
+            {step === 1 ? "Barber сонгох" : step === 2 ? "Өдөр сонгох" : "Цаг сонгох"}
           </p>
         </div>
         <div className="mt-2 h-1 overflow-hidden rounded-full bg-achira-blue/10 dark:bg-achira-cream/10">
@@ -546,7 +546,7 @@ export function BookingSystem() {
           <span className="font-medium text-achira-blue-dark dark:text-achira-cream">
             {selectedBarber.name}
           </span>{" "}
-          babert{" "}
+          барберт{" "}
           <span className="font-medium">{date}</span> өдөр{" "}
           <span className="font-medium">{time}</span> цагт захиалга амжилттай
           баталгаажлаа.
@@ -583,9 +583,9 @@ export function BookingSystem() {
         <section>
           <div className="mb-3 flex items-end justify-between px-0.5">
             <div>
-              <p className={sectionTitle}>1. Бабер</p>
-              <h2 className={sectionHeading}>Baber сонгох</h2>
-              <p className={sectionHint}>Та үйлчлүүлэх бабераа сонгоно уу.</p>
+              <p className={sectionTitle}>1. Барбер</p>
+              <h2 className={sectionHeading}>Barber сонгох</h2>
+              <p className={sectionHint}>Та үйлчлүүлэх барбераа сонгоно уу.</p>
             </div>
             {barberId && (
               <button
@@ -706,7 +706,7 @@ export function BookingSystem() {
             <h2 className={sectionHeading}>Цаг сонгох</h2>
             <p className={sectionHint}>
               {daySchedule.off
-                ? "Энэ өдөр бабер ажиллахгүй."
+                ? "Энэ өдөр барбер ажиллахгүй."
                 : `${daySchedule.start.toString().padStart(2, "0")}:00 — ${daySchedule.end.toString().padStart(2, "0")}:00, 1 цагийн зайтай.`}
             </p>
           </div>
@@ -821,12 +821,12 @@ export function BookingSystem() {
             <section>
               <div className="mb-5 flex items-end justify-between">
                 <div>
-                  <p className={sectionTitle}>1. Бабер</p>
+                  <p className={sectionTitle}>1. Барбер</p>
                   <h2 className="mt-1 font-[family-name:var(--font-display)] text-2xl tracking-[0.06em] text-achira-blue-dark dark:text-achira-cream lg:text-3xl">
-                    Baber сонгох
+                    Barber сонгох
                   </h2>
                   <p className="mt-2 text-sm text-achira-blue/60 dark:text-achira-cream/55">
-                    Та үйлчлүүлэх бабераа сонгоно уу.
+                    Та үйлчлүүлэх барбераа сонгоно уу.
                   </p>
                 </div>
                 {barberId && (
@@ -968,7 +968,7 @@ export function BookingSystem() {
                     <User className="h-5 w-5" strokeWidth={1.5} />
                   </div>
                   <p className="text-sm text-achira-blue/55 dark:text-achira-cream/50">
-                    Эхлээд бабер сонгоно уу
+                    Эхлээд барбер сонгоно уу
                   </p>
                 </div>
               )}
@@ -989,7 +989,7 @@ export function BookingSystem() {
                 <div className="mt-4 rounded-2xl border border-achira-blue/8 bg-white/50 p-3 dark:border-achira-cream/8 dark:bg-achira-navy/40">
                   {!barberId ? (
                     <p className="py-8 text-center text-sm text-achira-blue/45 dark:text-achira-cream/40">
-                      Бабер сонгосны дараа цагууд харагдана
+                      Барбер сонгосны дараа цагууд харагдана
                     </p>
                   ) : loadingSlots ? (
                     <p className="py-8 text-center text-sm text-achira-blue/55 dark:text-achira-cream/50">

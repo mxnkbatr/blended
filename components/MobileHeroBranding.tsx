@@ -26,7 +26,7 @@ export function MobileHeroBranding() {
         <AchiraWordmark size="lg" />
       </motion.div>
       <p className="mx-auto mt-2.5 max-w-[16rem] text-[10px] leading-relaxed text-achira-blue/60 dark:text-achira-cream/55">
-        Гар урлалын сэтгэлгээтэй babershop — уламжлалт техник, орчин үеийн
+        Гар урлалын сэтгэлгээтэй barbershop — уламжлалт техник, орчин үеийн
         загвар.
       </p>
     </div>

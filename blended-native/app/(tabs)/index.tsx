@@ -102,7 +102,7 @@ const HomeBarberSlider: React.FC<HomeBarberSliderProps> = ({
     <View style={styles.section}>
       <View style={styles.sectionHeaderRow}>
         <View style={{ gap: 4 }}>
-          <Text style={[styles.kicker, { color: muted }]}>БАБЕРУУД</Text>
+          <Text style={[styles.kicker, { color: muted }]}>БАРБЕРУУД</Text>
           <Text
             style={[
               styles.sectionTitle,
