@@ -6,8 +6,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   return (
     <NextThemesProvider
       attribute="class"
+      forcedTheme="dark"
       defaultTheme="dark"
-      enableSystem
+      enableSystem={false}
       storageKey="achira-theme"
       disableTransitionOnChange
     >
@@ -15,4 +16,3 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     </NextThemesProvider>
   );
 }
-

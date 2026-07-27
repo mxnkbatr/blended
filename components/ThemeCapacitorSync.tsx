@@ -1,30 +1,23 @@
 "use client";
 
 import { useEffect } from "react";
-import { useTheme } from "next-themes";
 import { Capacitor } from "@capacitor/core";
 import { StatusBar, Style } from "@capacitor/status-bar";
 
+/** Always dark — light mode removed */
 export function ThemeCapacitorSync() {
-  const { resolvedTheme } = useTheme();
-
   useEffect(() => {
-    if (!Capacitor.isNativePlatform() || !resolvedTheme) return;
+    if (!Capacitor.isNativePlatform()) return;
 
     void (async () => {
       try {
-        if (resolvedTheme === "dark") {
-          await StatusBar.setStyle({ style: Style.Dark });
-          await StatusBar.setBackgroundColor({ color: "#0f1a2e" });
-        } else {
-          await StatusBar.setStyle({ style: Style.Light });
-          await StatusBar.setBackgroundColor({ color: "#f4efe6" });
-        }
+        await StatusBar.setStyle({ style: Style.Dark });
+        await StatusBar.setBackgroundColor({ color: "#0d1728" });
       } catch {
         // Status bar plugin may be unavailable
       }
     })();
-  }, [resolvedTheme]);
+  }, []);
 
   return null;
 }

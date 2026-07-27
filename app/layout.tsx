@@ -40,7 +40,7 @@ export const metadata: Metadata = {
   description:
     "Achira — гар урлалын сэтгэлгээтэй barbershop. Хан уул дүүрэг, 15р хороо, 10р байр. Цаг авах, дэлгүүр.",
   applicationName: "Achira",
-  themeColor: "#f7f2ea",
+  themeColor: "#0d1728",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
@@ -55,6 +55,8 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
+  themeColor: "#0d1728",
+  colorScheme: "dark",
 };
 
 export default function RootLayout({
@@ -65,11 +67,11 @@ export default function RootLayout({
   return (
     <html
       lang="mn"
-      className={`${playfair.variable} h-full`}
+      className={`${playfair.variable} dark h-full`}
       suppressHydrationWarning
     >
       <body
-        className={`${inter.className} min-h-full bg-achira-cream text-achira-ink antialiased dark:bg-achira-navy dark:text-achira-cream`}
+        className={`${inter.className} min-h-full bg-achira-navy text-achira-cream antialiased`}
       >
         <ThemeProvider>
           <AuthProvider>

@@ -56,7 +56,7 @@ export function AppSplash() {
 
   return (
     <div
-      className={`fixed inset-0 z-[100] flex flex-col items-center justify-center bg-achira-cream transition-opacity duration-300 dark:bg-achira-navy ${
+      className={`fixed inset-0 z-[100] flex flex-col items-center justify-center bg-achira-navy transition-opacity duration-300 ${
         phase === "fade" ? "pointer-events-none opacity-0" : "opacity-100"
       }`}
       aria-hidden={phase === "fade"}

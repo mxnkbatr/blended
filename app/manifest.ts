@@ -9,8 +9,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "Achira Artist — Barbershop. Цаг авах, дэлгүүр.",
     start_url: "/",
     display: "standalone",
-    background_color: "#f4efe6",
-    theme_color: "#1e4f96",
+    background_color: "#0d1728",
+    theme_color: "#0d1728",
     orientation: "portrait",
     icons: [
       {
