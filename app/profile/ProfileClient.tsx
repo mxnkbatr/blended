@@ -324,11 +324,23 @@ export function ProfileClient() {
                       Status:{" "}
                       {a.status === "AWAITING_PAYMENT"
                         ? "Төлбөр хүлээж"
-                        : a.status}
+                        : a.status === "PENDING"
+                          ? "Шинэ захиалга"
+                          : a.status === "CONFIRMED"
+                            ? "Баталгаажсан · төлсөн"
+                            : a.status === "COMPLETED"
+                              ? "Дууссан"
+                              : a.status === "CANCELLED"
+                                ? "Цуцлагдсан"
+                                : a.status}
                     </p>
                   </div>
                   <span className="rounded-full bg-achira-blue/8 px-2.5 py-1 text-[9px] font-medium uppercase tracking-wider text-achira-blue dark:bg-achira-cream/10 dark:text-achira-cream">
-                    {a.status === "AWAITING_PAYMENT" ? "QPay" : a.status}
+                    {a.status === "AWAITING_PAYMENT"
+                      ? "QPay"
+                      : a.status === "CONFIRMED"
+                        ? "Төлсөн"
+                        : a.status}
                   </span>
                 </div>
               </li>

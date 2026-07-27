@@ -178,6 +178,18 @@ export default function AdminAppointmentsPage() {
                     </option>
                   ))}
                 </select>
+                {row.qpay_invoice_id &&
+                row.status !== "AWAITING_PAYMENT" &&
+                row.status !== "CANCELLED" ? (
+                  <span className="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-emerald-700 dark:text-emerald-300">
+                    QPay төлсөн
+                  </span>
+                ) : null}
+                {row.status === "AWAITING_PAYMENT" ? (
+                  <span className="rounded-full border border-amber-500/25 bg-amber-500/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-amber-700 dark:text-amber-300">
+                    Төлбөр хүлээж
+                  </span>
+                ) : null}
               </div>
               <label className="mt-3 block text-xs text-achira-blue/50 dark:text-achira-cream/45">
                 Тэмдэглэл

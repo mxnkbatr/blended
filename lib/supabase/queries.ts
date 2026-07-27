@@ -127,10 +127,16 @@ export async function fetchProductBySlug(slug: string): Promise<Product | null> 
   return fallback ? withFallbackDefaults(fallback) : null;
 }
 
+export type BookedSlot = {
+  time: string;
+  customerName: string;
+  status: string;
+};
+
 export async function fetchBookedTimes(
   barberId: string,
   date: string,
-): Promise<string[]> {
+): Promise<BookedSlot[]> {
   const supabase = createSupabaseBrowserClient();
   if (!supabase) return [];
 
@@ -140,11 +146,12 @@ export async function fetchBookedTimes(
 
   const { data, error } = await supabase
     .from("appointments")
-    .select("starts_at, status, created_at")
+    .select("starts_at, status, created_at, customer_name")
     .eq("barber_id", barberId)
     .gte("starts_at", dayStart)
     .lte("starts_at", dayEnd)
-    .neq("status", "CANCELLED");
+    .neq("status", "CANCELLED")
+    .order("starts_at", { ascending: true });
 
   if (error || !data) {
     console.warn("[supabase] fetchBookedTimes:", error?.message);
@@ -157,7 +164,11 @@ export async function fetchBookedTimes(
     return age < holdMs;
   });
 
-  return blocked.map((row) => formatAppointmentSlot(row.starts_at));
+  return blocked.map((row) => ({
+    time: formatAppointmentSlot(row.starts_at),
+    customerName: (row.customer_name as string)?.trim() || "Захиалагдсан",
+    status: row.status as string,
+  }));
 }
 
 function formatAppointmentSlot(iso: string): string {

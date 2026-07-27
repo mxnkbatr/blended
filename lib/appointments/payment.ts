@@ -328,8 +328,22 @@ export async function finalizeAppointmentPayment(input: {
   if (!appointment) return { ok: false };
 
   const awaitingPayment = appointment.status === "AWAITING_PAYMENT";
+  // Хуучин flow: төлбөр амжилттай болоод PENDING үлдсэн захиалга
+  const paidButPending =
+    appointment.status === "PENDING" && Boolean(appointment.qpay_invoice_id);
 
-  if (awaitingPayment) {
+  if (paidButPending) {
+    const supabase = createSupabaseAdminClient();
+    const { error } = await supabase
+      .from("appointments")
+      .update({
+        status: "CONFIRMED",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", appointment.id)
+      .eq("status", "PENDING");
+    if (error) return { ok: false, appointmentId: appointment.id };
+  } else if (awaitingPayment) {
     if (!appointment.qpay_invoice_id) {
       return { ok: false, appointmentId: appointment.id, paid: false };
     }
@@ -343,7 +357,7 @@ export async function finalizeAppointmentPayment(input: {
     const { error } = await supabase
       .from("appointments")
       .update({
-        status: "PENDING",
+        status: "CONFIRMED",
         updated_at: new Date().toISOString(),
       })
       .eq("id", appointment.id)

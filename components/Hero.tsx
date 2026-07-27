@@ -5,6 +5,7 @@ import { HomeBanner } from "./HomeBanner";
 import { HomeBarberSlider } from "./HomeBarberSlider";
 import { HomeBestSellerGrid } from "./HomeBestSellerGrid";
 import { HomeNewsPreview } from "./HomeNewsPreview";
+import { HomeShopSlider } from "./HomeShopSlider";
 
 const infoDesktop: {
   label: string;
@@ -38,7 +39,19 @@ export function Hero() {
       {/* Гар утас — premium app-style */}
       <div className="relative mx-auto flex w-full max-w-md flex-col md:hidden">
         <HomeBanner />
+        <div className="mt-3 flex items-center gap-2 px-0.5">
+          <Link href="/booking" className="cream-pill">
+            Цаг авах
+          </Link>
+          <Link href="/news" className="cream-pill">
+            Мэдээ
+          </Link>
+          <Link href="/shop" className="cream-pill">
+            Дэлгүүр
+          </Link>
+        </div>
         <HomeBarberSlider />
+        <HomeShopSlider />
         <HomeBestSellerGrid />
         <HomeNewsPreview />
       </div>

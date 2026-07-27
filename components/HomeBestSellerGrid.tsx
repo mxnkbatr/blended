@@ -20,11 +20,22 @@ export function HomeBestSellerGrid() {
         <p className="premium-section-title mt-2 text-center">{t("bestSeller")}</p>
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-3">
-        {items.map((p) => (
-          <ProductCard key={p.slug} product={p} />
-        ))}
-      </div>
+      {items.length > 0 ? (
+        <div className="mt-4 grid grid-cols-2 gap-3">
+          {items.map((p) => (
+            <ProductCard key={p.slug} product={p} />
+          ))}
+        </div>
+      ) : (
+        <div className="premium-card mt-4 px-4 py-6 text-center">
+          <p className="font-[family-name:var(--font-display)] text-base text-achira-blue-dark dark:text-achira-cream">
+            Шинэ бараа удахгүй
+          </p>
+          <p className="mt-1.5 text-sm text-achira-blue/60 dark:text-achira-cream/55">
+            Хугацаа, урамшууллын шинэ мэдээллээ мэдээ хэсгээс аваарай.
+          </p>
+        </div>
+      )}
     </section>
   );
 }

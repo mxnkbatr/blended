@@ -34,6 +34,8 @@ export type AppointmentRow = {
   ends_at: string;
   status: string;
   notes: string | null;
+  qpay_invoice_id: string | null;
+  qpay_sender_invoice_no: string | null;
 };
 
 export type AdminOrderRow = {
@@ -166,10 +168,22 @@ export async function adminDeleteProduct(id: string): Promise<void> {
 }
 
 export async function adminFetchAppointments(): Promise<AppointmentRow[]> {
-  const { data, error } = await client()
+  const supabase = client();
+
+  // Хуучин bug: QPay төлсөн ч PENDING үлддэг байсан → CONFIRMED болгоно
+  await supabase
+    .from("appointments")
+    .update({
+      status: "CONFIRMED",
+      updated_at: new Date().toISOString(),
+    })
+    .eq("status", "PENDING")
+    .not("qpay_invoice_id", "is", null);
+
+  const { data, error } = await supabase
     .from("appointments")
     .select(
-      "id, barber_id, customer_name, customer_phone, starts_at, ends_at, status, notes",
+      "id, barber_id, customer_name, customer_phone, starts_at, ends_at, status, notes, qpay_invoice_id, qpay_sender_invoice_no",
     )
     .order("starts_at", { ascending: false })
     .limit(100);

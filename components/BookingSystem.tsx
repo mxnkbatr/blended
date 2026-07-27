@@ -12,6 +12,7 @@ import {
 } from "@/lib/barbers/schedule";
 import {
   fetchBookedTimes,
+  type BookedSlot,
 } from "@/lib/supabase/queries";
 import { hapticLight, hapticSuccess } from "@/lib/haptics";
 import { apiUrl } from "@/lib/api-base";
@@ -167,7 +168,7 @@ export function BookingSystem() {
   const [totalMnt, setTotalMnt] = useState(DEFAULT_BOOKING_PRICE_MNT);
   const [polling, setPolling] = useState(false);
   const [cancelling, setCancelling] = useState(false);
-  const [bookedTimes, setBookedTimes] = useState<string[]>([]);
+  const [bookedSlots, setBookedSlots] = useState<BookedSlot[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
 
   const daySectionRef = useRef<HTMLDivElement | null>(null);
@@ -241,16 +242,16 @@ export function BookingSystem() {
 
   useEffect(() => {
     if (!barberId) {
-      setBookedTimes([]);
+      setBookedSlots([]);
       return;
     }
 
     let cancelled = false;
     setLoadingSlots(true);
 
-    void fetchBookedTimes(barberId, date).then((times) => {
+    void fetchBookedTimes(barberId, date).then((slotsBooked) => {
       if (!cancelled) {
-        setBookedTimes(times);
+        setBookedSlots(slotsBooked);
         setLoadingSlots(false);
       }
     });
@@ -263,8 +264,8 @@ export function BookingSystem() {
   const refreshBookedSlots = useCallback(async () => {
     if (!barberId) return;
     setLoadingSlots(true);
-    const times = await fetchBookedTimes(barberId, date);
-    setBookedTimes(times);
+    const slotsBooked = await fetchBookedTimes(barberId, date);
+    setBookedSlots(slotsBooked);
     setLoadingSlots(false);
   }, [barberId, date]);
 
@@ -319,11 +320,19 @@ export function BookingSystem() {
     };
   }, [appointmentId, submitted, barberId, refreshBookedSlots]);
 
+  const bookedByTime = useMemo(() => {
+    const map = new Map<string, BookedSlot>();
+    for (const slot of bookedSlots) {
+      map.set(slot.time, slot);
+    }
+    return map;
+  }, [bookedSlots]);
+
   function isSlotUnavailable(slot: string): boolean {
     if (!barberId || !selectedBarber) return true;
     if (!slots.includes(slot)) return true;
     if (isPastSlot(date, slot)) return true;
-    return bookedTimes.includes(slot);
+    return bookedByTime.has(slot);
   }
 
   function pickBarber(id: string) {
@@ -707,7 +716,7 @@ export function BookingSystem() {
             <p className={sectionHint}>
               {daySchedule.off
                 ? "Энэ өдөр барбер ажиллахгүй."
-                : `${daySchedule.start.toString().padStart(2, "0")}:00 — ${daySchedule.end.toString().padStart(2, "0")}:00, 1 цагийн зайтай.`}
+                : `${daySchedule.start.toString().padStart(2, "0")}:00 — ${daySchedule.end.toString().padStart(2, "0")}:00 · дүүрсэн цагт хэн захиалсныг харна.`}
             </p>
           </div>
           <div className="rounded-2xl border border-achira-blue/10 bg-white/60 p-3 dark:border-achira-cream/10 dark:bg-achira-navy/40">
@@ -720,29 +729,88 @@ export function BookingSystem() {
                 Энэ өдөр боломжит цаг байхгүй.
               </p>
             ) : (
-              <div className="grid grid-cols-3 gap-2">
+              <ul className="space-y-2">
                 {slots.map((t) => {
-                  const unavailable = isSlotUnavailable(t);
+                  const booked = bookedByTime.get(t);
+                  const past = isPastSlot(date, t);
+                  const unavailable = Boolean(booked) || past || !barberId;
                   const active = time === t;
                   return (
-                    <button
-                      key={t}
-                      type="button"
-                      disabled={!barberId || unavailable}
-                      onClick={() => pickTime(t)}
-                      className={`rounded-xl border py-2.5 text-[12px] font-medium transition-all active:scale-[0.98] ${
-                        unavailable
-                          ? "cursor-not-allowed border-transparent bg-achira-blue/5 text-achira-blue/30 line-through dark:bg-achira-cream/5 dark:text-achira-cream/30"
-                          : active
-                            ? "border-achira-blue bg-achira-blue text-achira-cream dark:border-achira-cream dark:bg-achira-cream dark:text-achira-blue-dark"
-                            : "border-achira-blue/12 bg-achira-cream/50 text-achira-blue-dark dark:border-achira-cream/12 dark:bg-achira-navy/50 dark:text-achira-cream"
-                      }`}
-                    >
-                      {t}
-                    </button>
+                    <li key={t}>
+                      {booked ? (
+                        <div className="flex items-center gap-3 rounded-2xl border border-achira-burgundy/20 bg-gradient-to-r from-achira-burgundy/10 to-achira-burgundy/5 px-3.5 py-3 dark:border-achira-burgundy/30 dark:from-achira-burgundy/20 dark:to-achira-navy/40">
+                          <div className="flex h-11 w-14 shrink-0 flex-col items-center justify-center rounded-xl bg-achira-burgundy/15 text-achira-burgundy dark:bg-achira-burgundy/25 dark:text-achira-cream">
+                            <span className="font-[family-name:var(--font-display)] text-sm font-semibold tabular-nums leading-none">
+                              {t}
+                            </span>
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-semibold text-achira-burgundy dark:text-achira-cream">
+                              {booked.customerName}
+                            </p>
+                            <p className="mt-0.5 text-[10px] font-medium uppercase tracking-[0.16em] text-achira-burgundy/70 dark:text-achira-cream/60">
+                              {booked.status === "AWAITING_PAYMENT"
+                                ? "Төлбөр хүлээж · захиалагдсан"
+                                : "Захиалагдсан"}
+                            </p>
+                          </div>
+                          <span className="shrink-0 rounded-full bg-achira-burgundy/15 px-2 py-1 text-[9px] font-semibold uppercase tracking-wider text-achira-burgundy dark:bg-achira-cream/10 dark:text-achira-cream/80">
+                            Дүүрсэн
+                          </span>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          disabled={unavailable}
+                          onClick={() => pickTime(t)}
+                          className={`flex w-full items-center gap-3 rounded-2xl border px-3.5 py-3 text-left transition-all active:scale-[0.99] ${
+                            past
+                              ? "cursor-not-allowed border-transparent bg-achira-blue/5 opacity-45 dark:bg-achira-cream/5"
+                              : active
+                                ? "border-achira-blue bg-achira-blue text-achira-cream shadow-[0_8px_24px_rgba(28,74,140,0.22)] dark:border-achira-cream dark:bg-achira-cream dark:text-achira-blue-dark"
+                                : "border-achira-gold/20 bg-gradient-to-r from-white/90 to-achira-champagne/30 text-achira-blue-dark dark:border-achira-cream/12 dark:from-achira-navy/50 dark:to-achira-blue/15 dark:text-achira-cream"
+                          }`}
+                        >
+                          <div
+                            className={`flex h-11 w-14 shrink-0 flex-col items-center justify-center rounded-xl tabular-nums ${
+                              active
+                                ? "bg-white/15"
+                                : "bg-achira-blue/8 dark:bg-achira-cream/10"
+                            }`}
+                          >
+                            <span className="font-[family-name:var(--font-display)] text-sm font-semibold leading-none">
+                              {t}
+                            </span>
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium">
+                              {past ? "Өнгөрсөн цаг" : "Сул цаг"}
+                            </p>
+                            <p
+                              className={`mt-0.5 text-[10px] uppercase tracking-[0.14em] ${
+                                active ? "opacity-75" : "text-achira-blue/50 dark:text-achira-cream/45"
+                              }`}
+                            >
+                              {past ? "Сонгох боломжгүй" : "Сонгох"}
+                            </p>
+                          </div>
+                          {!past && (
+                            <span
+                              className={`shrink-0 rounded-full px-2 py-1 text-[9px] font-semibold uppercase tracking-wider ${
+                                active
+                                  ? "bg-white/20"
+                                  : "bg-emerald-500/12 text-emerald-700 dark:text-emerald-300"
+                              }`}
+                            >
+                              {active ? "Сонгосон" : "Нээлттэй"}
+                            </span>
+                          )}
+                        </button>
+                      )}
+                    </li>
                   );
                 })}
-              </div>
+              </ul>
             )}
           </div>
         </section>
@@ -1000,29 +1068,90 @@ export function BookingSystem() {
                       Энэ өдөр боломжит цаг байхгүй.
                     </p>
                   ) : (
-                    <div className="grid grid-cols-3 gap-2">
+                    <ul className="space-y-2">
                       {slots.map((t) => {
-                        const unavailable = isSlotUnavailable(t);
+                        const booked = bookedByTime.get(t);
+                        const past = isPastSlot(date, t);
+                        const unavailable = Boolean(booked) || past;
                         const active = time === t;
                         return (
-                          <button
-                            key={t}
-                            type="button"
-                            disabled={unavailable}
-                            onClick={() => pickTime(t)}
-                            className={`rounded-xl border py-2.5 text-sm font-medium transition-all hover:scale-[1.02] ${
-                              unavailable
-                                ? "cursor-not-allowed border-transparent bg-achira-blue/5 text-achira-blue/30 line-through dark:bg-achira-cream/5 dark:text-achira-cream/30"
-                                : active
-                                  ? "border-achira-blue bg-achira-blue text-achira-cream shadow-[0_4px_16px_rgba(30,79,150,0.3)] dark:border-achira-cream dark:bg-achira-cream dark:text-achira-blue-dark"
-                                  : "border-achira-blue/12 bg-achira-cream/60 text-achira-blue-dark hover:border-achira-blue/25 dark:border-achira-cream/12 dark:bg-achira-navy/60 dark:text-achira-cream dark:hover:border-achira-cream/25"
-                            }`}
-                          >
-                            {t}
-                          </button>
+                          <li key={t}>
+                            {booked ? (
+                              <div className="flex items-center gap-3 rounded-2xl border border-achira-burgundy/20 bg-gradient-to-r from-achira-burgundy/10 to-achira-burgundy/5 px-4 py-3.5 dark:border-achira-burgundy/30 dark:from-achira-burgundy/20 dark:to-achira-navy/40">
+                                <div className="flex h-12 w-16 shrink-0 flex-col items-center justify-center rounded-xl bg-achira-burgundy/15 text-achira-burgundy dark:bg-achira-burgundy/25 dark:text-achira-cream">
+                                  <span className="font-[family-name:var(--font-display)] text-base font-semibold tabular-nums leading-none">
+                                    {t}
+                                  </span>
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <p className="truncate text-sm font-semibold text-achira-burgundy dark:text-achira-cream">
+                                    {booked.customerName}
+                                  </p>
+                                  <p className="mt-0.5 text-[10px] font-medium uppercase tracking-[0.16em] text-achira-burgundy/70 dark:text-achira-cream/60">
+                                    {booked.status === "AWAITING_PAYMENT"
+                                      ? "Төлбөр хүлээж · захиалагдсан"
+                                      : "Захиалагдсан"}
+                                  </p>
+                                </div>
+                                <span className="shrink-0 rounded-full bg-achira-burgundy/15 px-2.5 py-1 text-[9px] font-semibold uppercase tracking-wider text-achira-burgundy dark:bg-achira-cream/10 dark:text-achira-cream/80">
+                                  Дүүрсэн
+                                </span>
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                disabled={unavailable}
+                                onClick={() => pickTime(t)}
+                                className={`flex w-full items-center gap-3 rounded-2xl border px-4 py-3.5 text-left transition-all hover:scale-[1.01] ${
+                                  past
+                                    ? "cursor-not-allowed border-transparent bg-achira-blue/5 opacity-45 dark:bg-achira-cream/5"
+                                    : active
+                                      ? "border-achira-blue bg-achira-blue text-achira-cream shadow-[0_8px_24px_rgba(28,74,140,0.28)] dark:border-achira-cream dark:bg-achira-cream dark:text-achira-blue-dark"
+                                      : "border-achira-gold/20 bg-gradient-to-r from-white/90 to-achira-champagne/30 text-achira-blue-dark hover:border-achira-blue/25 dark:border-achira-cream/12 dark:from-achira-navy/50 dark:to-achira-blue/15 dark:text-achira-cream"
+                                }`}
+                              >
+                                <div
+                                  className={`flex h-12 w-16 shrink-0 flex-col items-center justify-center rounded-xl tabular-nums ${
+                                    active
+                                      ? "bg-white/15"
+                                      : "bg-achira-blue/8 dark:bg-achira-cream/10"
+                                  }`}
+                                >
+                                  <span className="font-[family-name:var(--font-display)] text-base font-semibold leading-none">
+                                    {t}
+                                  </span>
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <p className="text-sm font-medium">
+                                    {past ? "Өнгөрсөн цаг" : "Сул цаг"}
+                                  </p>
+                                  <p
+                                    className={`mt-0.5 text-[10px] uppercase tracking-[0.14em] ${
+                                      active
+                                        ? "opacity-75"
+                                        : "text-achira-blue/50 dark:text-achira-cream/45"
+                                    }`}
+                                  >
+                                    {past ? "Сонгох боломжгүй" : "Сонгох"}
+                                  </p>
+                                </div>
+                                {!past && (
+                                  <span
+                                    className={`shrink-0 rounded-full px-2.5 py-1 text-[9px] font-semibold uppercase tracking-wider ${
+                                      active
+                                        ? "bg-white/20"
+                                        : "bg-emerald-500/12 text-emerald-700 dark:text-emerald-300"
+                                    }`}
+                                  >
+                                    {active ? "Сонгосон" : "Нээлттэй"}
+                                  </span>
+                                )}
+                              </button>
+                            )}
+                          </li>
                         );
                       })}
-                    </div>
+                    </ul>
                   )}
                 </div>
 

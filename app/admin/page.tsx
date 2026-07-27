@@ -100,7 +100,7 @@ export default function AdminDashboardPage() {
             </p>
           </div>
           <div className="admin-stat">
-            <p className="admin-stat-label">Хүлээгдэж буй цаг</p>
+            <p className="admin-stat-label">Шинэ / хүлээгдэж буй цаг</p>
             <p className="admin-stat-value">{stats.pendingAppointments}</p>
           </div>
           <div className="admin-stat col-span-2 sm:col-span-1">

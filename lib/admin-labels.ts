@@ -1,7 +1,7 @@
 export const APPOINTMENT_STATUS_LABELS: Record<string, string> = {
   AWAITING_PAYMENT: "Төлбөр хүлээгдэж буй",
-  PENDING: "Хүлээгдэж буй",
-  CONFIRMED: "Баталгаажсан",
+  PENDING: "Шинэ захиалга",
+  CONFIRMED: "Баталгаажсан · төлсөн",
   CANCELLED: "Цуцлагдсан",
   COMPLETED: "Дууссан",
   NO_SHOW: "Ирээгүй",

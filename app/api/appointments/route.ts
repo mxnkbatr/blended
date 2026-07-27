@@ -98,7 +98,7 @@ export async function GET(req: Request) {
       }
       return NextResponse.json({
         paid: true,
-        status: "PENDING",
+        status: "CONFIRMED",
         smsSent: result.customerSmsSent ?? false,
       });
     }
