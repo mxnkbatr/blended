@@ -7,10 +7,7 @@ import { useBarbers } from "@/hooks/useBarbers";
 
 export function HomeBarberSlider() {
   const { barbers } = useBarbers();
-  const displayBarbers =
-    barbers.length === 1
-      ? Array.from({ length: 7 }, () => barbers[0])
-      : barbers;
+  const displayBarbers = barbers;
   return (
     <div className="mt-7 w-full text-left">
       <div className="mb-3 flex items-end justify-between gap-2 px-0.5">
