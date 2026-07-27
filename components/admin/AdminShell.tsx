@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type { LucideIcon } from "lucide-react";
 import {
   CalendarDays,
   LayoutDashboard,
@@ -14,40 +15,105 @@ import {
   Users,
 } from "lucide-react";
 
-const navGroups = [
+type NavItem = {
+  href: string;
+  label: string;
+  hint: string;
+  Icon: LucideIcon;
+  exact?: boolean;
+};
+
+type NavGroup = {
+  title: string;
+  items: NavItem[];
+};
+
+const navGroups: NavGroup[] = [
   {
     title: "Эхлэл",
     items: [
-      { href: "/admin", label: "Тойм", hint: "Өнөөдрийн тойм", Icon: LayoutDashboard, exact: true },
+      {
+        href: "/admin",
+        label: "Тойм",
+        hint: "Өнөөдрийн тойм",
+        Icon: LayoutDashboard,
+        exact: true,
+      },
     ],
   },
   {
     title: "Үйлчилгээ",
     items: [
-      { href: "/admin/appointments", label: "Цаг захиалга", hint: "Төлбөр · төлөв", Icon: CalendarDays },
-      { href: "/admin/barbers", label: "Барберууд", hint: "Зураг · хуваарь", Icon: Scissors },
+      {
+        href: "/admin/appointments",
+        label: "Цаг захиалга",
+        hint: "Төлбөр · төлөв",
+        Icon: CalendarDays,
+      },
+      {
+        href: "/admin/barbers",
+        label: "Барберууд",
+        hint: "Зураг · хуваарь",
+        Icon: Scissors,
+      },
     ],
   },
   {
     title: "Дэлгүүр",
     items: [
-      { href: "/admin/orders", label: "Захиалга", hint: "QPay · хүргэлт", Icon: ShoppingBag },
-      { href: "/admin/products", label: "Бараа", hint: "Үнэ · нөөц", Icon: Package },
-      { href: "/admin/promos", label: "Промо код", hint: "Хөнгөлөлт", Icon: Tag },
+      {
+        href: "/admin/orders",
+        label: "Захиалга",
+        hint: "QPay · хүргэлт",
+        Icon: ShoppingBag,
+      },
+      {
+        href: "/admin/products",
+        label: "Бараа",
+        hint: "Үнэ · нөөц",
+        Icon: Package,
+      },
+      {
+        href: "/admin/promos",
+        label: "Промо код",
+        hint: "Хөнгөлөлт",
+        Icon: Tag,
+      },
     ],
   },
   {
     title: "Контент & систем",
     items: [
-      { href: "/admin/news", label: "Мэдээ", hint: "Апп мэдээлэл", Icon: Newspaper },
-      { href: "/admin/notifications", label: "Мэдэгдэл", hint: "Push · inbox", Icon: Megaphone },
-      { href: "/admin/users", label: "Хэрэглэгч", hint: "Admin эрх", Icon: Users },
+      {
+        href: "/admin/news",
+        label: "Мэдээ",
+        hint: "Апп мэдээлэл",
+        Icon: Newspaper,
+      },
+      {
+        href: "/admin/notifications",
+        label: "Мэдэгдэл",
+        hint: "Push · inbox",
+        Icon: Megaphone,
+      },
+      {
+        href: "/admin/users",
+        label: "Хэрэглэгч",
+        hint: "Admin эрх",
+        Icon: Users,
+      },
     ],
   },
-] as const;
+];
+
+function isActive(pathname: string, item: NavItem) {
+  if (item.exact) return pathname === item.href;
+  return pathname === item.href || pathname.startsWith(`${item.href}/`);
+}
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const flatItems = navGroups.flatMap((g) => g.items);
 
   return (
     <div className="min-h-[100dvh] bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-achira-cream)_88%,white),var(--color-achira-cream))] dark:bg-[linear-gradient(180deg,var(--color-achira-navy),color-mix(in_srgb,var(--color-achira-navy)_92%,black))]">
@@ -71,31 +137,29 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               Цаг, захиалга, бараа, мэдээг нэг дороос удирдана.
             </p>
 
-            {/* Mobile: horizontal chips */}
-            <nav className="mt-4 flex gap-2 overflow-x-auto pb-1 md:hidden" aria-label="Админ цэс">
-              {navGroups.flatMap((g) => g.items).map(({ href, label, Icon, ...rest }) => {
-                const exact = "exact" in rest && rest.exact;
-                const active = exact
-                  ? pathname === href
-                  : pathname === href || pathname.startsWith(`${href}/`);
+            <nav
+              className="mt-4 flex gap-2 overflow-x-auto pb-1 md:hidden"
+              aria-label="Админ цэс"
+            >
+              {flatItems.map((item) => {
+                const active = isActive(pathname, item);
                 return (
                   <Link
-                    key={href}
-                    href={href}
+                    key={item.href}
+                    href={item.href}
                     className={`inline-flex shrink-0 items-center gap-2 rounded-full px-3.5 py-2 text-sm transition-colors ${
                       active
                         ? "bg-achira-blue text-achira-cream dark:bg-achira-cream dark:text-achira-blue-dark"
                         : "border border-achira-gold/20 bg-white/60 text-achira-blue/70 dark:border-achira-cream/10 dark:bg-achira-navy/40 dark:text-achira-cream/70"
                     }`}
                   >
-                    <Icon className="h-3.5 w-3.5" strokeWidth={1.75} />
-                    {label}
+                    <item.Icon className="h-3.5 w-3.5" strokeWidth={1.75} />
+                    {item.label}
                   </Link>
                 );
               })}
             </nav>
 
-            {/* Desktop: grouped sidebar */}
             <nav className="mt-5 hidden space-y-5 md:block" aria-label="Админ цэс">
               {navGroups.map((group) => (
                 <div key={group.title}>
@@ -103,28 +167,25 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                     {group.title}
                   </p>
                   <ul className="space-y-1">
-                    {group.items.map(({ href, label, hint, Icon, ...rest }) => {
-                      const exact = "exact" in rest && rest.exact;
-                      const active = exact
-                        ? pathname === href
-                        : pathname === href || pathname.startsWith(`${href}/`);
+                    {group.items.map((item) => {
+                      const active = isActive(pathname, item);
                       return (
-                        <li key={href}>
+                        <li key={item.href}>
                           <Link
-                            href={href}
+                            href={item.href}
                             className={`flex items-start gap-3 rounded-2xl px-3 py-2.5 transition-colors ${
                               active
                                 ? "bg-gradient-to-r from-achira-blue to-achira-blue-dark text-achira-cream shadow-[0_8px_22px_rgba(28,74,140,0.22)] dark:from-achira-cream dark:to-achira-champagne dark:text-achira-blue-dark"
                                 : "text-achira-blue/75 hover:bg-achira-blue/6 dark:text-achira-cream/70 dark:hover:bg-achira-cream/8"
                             }`}
                           >
-                            <Icon
+                            <item.Icon
                               className="mt-0.5 h-4 w-4 shrink-0"
                               strokeWidth={1.75}
                             />
                             <span className="min-w-0">
                               <span className="block text-sm font-medium leading-tight">
-                                {label}
+                                {item.label}
                               </span>
                               <span
                                 className={`mt-0.5 block text-[11px] leading-tight ${
@@ -133,7 +194,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                                     : "text-achira-blue/45 dark:text-achira-cream/40"
                                 }`}
                               >
-                                {hint}
+                                {item.hint}
                               </span>
                             </span>
                           </Link>
