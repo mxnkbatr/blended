@@ -750,8 +750,10 @@ export function BookingSystem() {
                             </p>
                             <p className="mt-0.5 text-[10px] font-medium uppercase tracking-[0.16em] text-achira-burgundy/70 dark:text-achira-cream/60">
                               {booked.status === "AWAITING_PAYMENT"
-                                ? "Төлбөр хүлээж · захиалагдсан"
-                                : "Захиалагдсан"}
+                                ? "Төлбөр хүлээж · цаг хаагдсан"
+                                : booked.status === "CONFIRMED"
+                                  ? "Төлсөн · баталгаажсан"
+                                  : "Захиалагдсан"}
                             </p>
                           </div>
                           <span className="shrink-0 rounded-full bg-achira-burgundy/15 px-2 py-1 text-[9px] font-semibold uppercase tracking-wider text-achira-burgundy dark:bg-achira-cream/10 dark:text-achira-cream/80">
@@ -1089,8 +1091,10 @@ export function BookingSystem() {
                                   </p>
                                   <p className="mt-0.5 text-[10px] font-medium uppercase tracking-[0.16em] text-achira-burgundy/70 dark:text-achira-cream/60">
                                     {booked.status === "AWAITING_PAYMENT"
-                                      ? "Төлбөр хүлээж · захиалагдсан"
-                                      : "Захиалагдсан"}
+                                      ? "Төлбөр хүлээж · цаг хаагдсан"
+                                      : booked.status === "CONFIRMED"
+                                        ? "Төлсөн · баталгаажсан"
+                                        : "Захиалагдсан"}
                                   </p>
                                 </div>
                                 <span className="shrink-0 rounded-full bg-achira-burgundy/15 px-2.5 py-1 text-[9px] font-semibold uppercase tracking-wider text-achira-burgundy dark:bg-achira-cream/10 dark:text-achira-cream/80">

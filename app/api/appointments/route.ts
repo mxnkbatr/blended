@@ -71,9 +71,37 @@ export async function GET(req: Request) {
       );
     }
 
-    if (appointment.status !== "AWAITING_PAYMENT") {
+    if (appointment.status === "CANCELLED") {
+      return NextResponse.json({
+        paid: false,
+        status: appointment.status,
+      });
+    }
+
+    if (
+      appointment.status === "CONFIRMED" ||
+      appointment.status === "COMPLETED" ||
+      appointment.status === "PENDING"
+    ) {
+      // PENDING = хуучин төлсөн төлөв — баталгаажуулна
+      if (appointment.status === "PENDING" && appointment.qpay_invoice_id) {
+        const result = await finalizeAppointmentPayment({
+          appointmentId: appointment.id,
+        });
+        return NextResponse.json({
+          paid: Boolean(result.paid),
+          status: result.paid ? "CONFIRMED" : appointment.status,
+        });
+      }
       return NextResponse.json({
         paid: true,
+        status: appointment.status === "PENDING" ? "CONFIRMED" : appointment.status,
+      });
+    }
+
+    if (appointment.status !== "AWAITING_PAYMENT") {
+      return NextResponse.json({
+        paid: false,
         status: appointment.status,
       });
     }

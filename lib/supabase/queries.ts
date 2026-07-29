@@ -6,6 +6,7 @@ import {
   normalizeBarberSchedule,
 } from "@/lib/barbers/schedule";
 import { resolveBookingPriceMnt } from "@/lib/appointments/pricing";
+import { apiUrl } from "@/lib/api-base";
 import { createSupabaseBrowserClient } from "./client";
 
 const PRODUCT_SELECT =
@@ -137,12 +138,27 @@ export async function fetchBookedTimes(
   barberId: string,
   date: string,
 ): Promise<BookedSlot[]> {
+  // Server reconcile + QPay sync
+  try {
+    const res = await fetch(
+      apiUrl(
+        `/api/appointments/booked?barberId=${encodeURIComponent(barberId)}&date=${encodeURIComponent(date)}`,
+      ),
+      { cache: "no-store" },
+    );
+    if (res.ok) {
+      const data = (await res.json()) as { slots?: BookedSlot[] };
+      if (Array.isArray(data.slots)) return data.slots;
+    }
+  } catch {
+    /* fallback below */
+  }
+
   const supabase = createSupabaseBrowserClient();
   if (!supabase) return [];
 
   const dayStart = `${date}T00:00:00+08:00`;
   const dayEnd = `${date}T23:59:59.999+08:00`;
-  const holdMs = 15 * 60 * 1000;
 
   const { data, error } = await supabase
     .from("appointments")
@@ -158,13 +174,8 @@ export async function fetchBookedTimes(
     return [];
   }
 
-  const blocked = data.filter((row) => {
-    if (row.status !== "AWAITING_PAYMENT") return true;
-    const age = Date.now() - new Date(row.created_at).getTime();
-    return age < holdMs;
-  });
-
-  return blocked.map((row) => ({
+  // AWAITING_PAYMENT ч гэсэн хаана — давхар захиалгаас сэргийлнэ
+  return data.map((row) => ({
     time: formatAppointmentSlot(row.starts_at),
     customerName: (row.customer_name as string)?.trim() || "Захиалагдсан",
     status: row.status as string,

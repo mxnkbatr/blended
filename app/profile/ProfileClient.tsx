@@ -25,6 +25,11 @@ import {
 import { fetchUserOrders, type ShopOrder } from "@/lib/supabase/orders";
 import { formatPhoneDisplay } from "@/lib/auth/phone";
 import { hapticLight } from "@/lib/haptics";
+import { apiUrl } from "@/lib/api-base";
+import {
+  APPOINTMENT_STATUS_LABELS,
+  labelStatus,
+} from "@/lib/admin-labels";
 
 function formatMnt(n: number) {
   return new Intl.NumberFormat("mn-MN").format(n) + " ₮";
@@ -76,12 +81,39 @@ export function ProfileClient() {
     let cancelled = false;
     setAppointmentsLoading(true);
 
-    void fetchUserAppointmentsByPhone(profile.phone).then((data) => {
+    void (async () => {
+      try {
+        await fetch(apiUrl("/api/appointments/reconcile"), { method: "POST" });
+      } catch {
+        /* ignore */
+      }
+
+      const data = await fetchUserAppointmentsByPhone(profile.phone!);
+      if (cancelled) return;
+
+      // Төлбөр хүлээж байгааг нэг бүрчлэн QPay-тай шалгана
+      await Promise.all(
+        data
+          .filter((a) => a.status === "AWAITING_PAYMENT" || a.status === "PENDING")
+          .map(async (a) => {
+            try {
+              await fetch(
+                apiUrl(`/api/appointments/?appointmentId=${a.id}`),
+                { cache: "no-store" },
+              );
+            } catch {
+              /* ignore */
+            }
+          }),
+      );
+
+      if (cancelled) return;
+      const refreshed = await fetchUserAppointmentsByPhone(profile.phone!);
       if (!cancelled) {
-        setAppointments(data);
+        setAppointments(refreshed);
         setAppointmentsLoading(false);
       }
-    });
+    })();
 
     return () => {
       cancelled = true;
@@ -322,23 +354,13 @@ export function ProfileClient() {
                     </p>
                     <p className="mt-1 text-[11px] text-achira-blue/55 dark:text-achira-cream/50">
                       Status:{" "}
-                      {a.status === "AWAITING_PAYMENT"
-                        ? "Төлбөр хүлээж"
-                        : a.status === "PENDING"
-                          ? "Шинэ захиалга"
-                          : a.status === "CONFIRMED"
-                            ? "Баталгаажсан · төлсөн"
-                            : a.status === "COMPLETED"
-                              ? "Дууссан"
-                              : a.status === "CANCELLED"
-                                ? "Цуцлагдсан"
-                                : a.status}
+                      {labelStatus(APPOINTMENT_STATUS_LABELS, a.status)}
                     </p>
                   </div>
                   <span className="rounded-full bg-achira-blue/8 px-2.5 py-1 text-[9px] font-medium uppercase tracking-wider text-achira-blue dark:bg-achira-cream/10 dark:text-achira-cream">
                     {a.status === "AWAITING_PAYMENT"
                       ? "QPay"
-                      : a.status === "CONFIRMED"
+                      : a.status === "CONFIRMED" || a.status === "COMPLETED"
                         ? "Төлсөн"
                         : a.status}
                   </span>

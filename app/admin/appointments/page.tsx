@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Phone, Trash2, User } from "lucide-react";
+import { apiUrl } from "@/lib/api-base";
 import {
   adminDeleteAppointment,
   adminFetchAppointments,
@@ -52,6 +53,13 @@ export default function AdminAppointmentsPage() {
     setLoading(true);
     setError(null);
     try {
+      // Төлсөн ч "төлбөр хүлээж" үлдсэн захиалгуудыг QPay-тай тулгана
+      try {
+        await fetch(apiUrl("/api/appointments/reconcile"), { method: "POST" });
+      } catch {
+        /* ignore reconcile network errors */
+      }
+
       const [appointments, barberRows] = await Promise.all([
         adminFetchAppointments(),
         adminFetchBarbers(),
