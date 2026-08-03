@@ -11,27 +11,24 @@ export function HomeBestSellerGrid() {
 
   return (
     <section className="mt-6 w-full">
-      <div className="px-0.5">
-        <div className="flex items-center gap-3">
-          <span className="h-px flex-1 bg-gradient-to-r from-transparent via-achira-gold/35 to-transparent" />
-          <p className="premium-section-kicker">{t("bestSeller")}</p>
-          <span className="h-px flex-1 bg-gradient-to-r from-transparent via-achira-gold/35 to-transparent" />
-        </div>
-        <p className="premium-section-title mt-2 text-center">{t("bestSeller")}</p>
+      <div className="flex items-end justify-between gap-2 px-0.5">
+        <p className="text-[13px] font-semibold tracking-[-0.01em] text-achira-cream">
+          {t("bestSeller")}
+        </p>
       </div>
 
       {items.length > 0 ? (
-        <div className="mt-4 grid grid-cols-2 gap-3">
+        <div className="mt-3 grid grid-cols-2 gap-2.5">
           {items.map((p) => (
             <ProductCard key={p.slug} product={p} />
           ))}
         </div>
       ) : (
-        <div className="premium-card mt-4 px-4 py-6 text-center">
-          <p className="font-[family-name:var(--font-display)] text-base text-achira-blue-dark dark:text-achira-cream">
+        <div className="mt-3 rounded-[1.25rem] bg-white/[0.05] px-4 py-6 text-center ring-1 ring-white/[0.08]">
+          <p className="text-[15px] font-semibold text-achira-cream">
             Шинэ бараа удахгүй
           </p>
-          <p className="mt-1.5 text-sm text-achira-blue/60 dark:text-achira-cream/55">
+          <p className="mt-1.5 text-[13px] text-achira-cream/50">
             Хугацаа, урамшууллын шинэ мэдээллээ мэдээ хэсгээс аваарай.
           </p>
         </div>

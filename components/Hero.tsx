@@ -30,26 +30,15 @@ const infoDesktop: {
 
 export function Hero() {
   return (
-    <section className="relative flex min-h-[calc(100dvh-8.5rem)] flex-col justify-center px-4 pb-6 pt-3 md:min-h-[calc(100dvh-4rem)] md:px-8 md:py-20">
+    <section className="relative flex min-h-[calc(100dvh-8.5rem)] flex-col justify-center px-4 pb-8 pt-2 md:min-h-[calc(100dvh-4rem)] md:px-8 md:py-20">
       <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_90%_60%_at_50%_-12%,rgba(30,79,150,0.10),transparent_58%),radial-gradient(ellipse_at_bottom,rgba(196,165,116,0.08),var(--color-achira-cream))] dark:bg-[radial-gradient(ellipse_90%_60%_at_50%_-12%,rgba(42,98,176,0.22),transparent_58%),radial-gradient(ellipse_at_bottom,rgba(15,26,46,0.92),var(--color-achira-navy))]"
+        className="pointer-events-none absolute inset-0 hidden bg-[radial-gradient(ellipse_90%_60%_at_50%_-12%,rgba(30,79,150,0.10),transparent_58%),radial-gradient(ellipse_at_bottom,rgba(196,165,116,0.08),var(--color-achira-cream))] md:block dark:bg-[radial-gradient(ellipse_90%_60%_at_50%_-12%,rgba(42,98,176,0.22),transparent_58%),radial-gradient(ellipse_at_bottom,rgba(15,26,46,0.92),var(--color-achira-navy))]"
         aria-hidden
       />
 
-      {/* Гар утас — premium app-style */}
+      {/* Гар утас — native app feed */}
       <div className="relative mx-auto flex w-full max-w-md flex-col md:hidden">
         <HomeBanner />
-        <div className="mt-3 flex items-center gap-2 px-0.5">
-          <Link href="/booking" className="cream-pill">
-            Цаг авах
-          </Link>
-          <Link href="/news" className="cream-pill">
-            Мэдээ
-          </Link>
-          <Link href="/shop" className="cream-pill">
-            Дэлгүүр
-          </Link>
-        </div>
         <HomeBarberSlider />
         <HomeShopSlider />
         <HomeBestSellerGrid />
