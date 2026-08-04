@@ -1,12 +1,10 @@
 "use client";
 
-import { LayoutGroup } from "framer-motion";
-
-/** Нүүр дээр BLENDED layoutId анимац (header ↔ hero) */
+/** Pass-through — shared layout motion removed for a solid app shell. */
 export function MobileShellLayoutGroup({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <LayoutGroup id="blended-mobile-brand">{children}</LayoutGroup>;
+  return <>{children}</>;
 }

@@ -9,7 +9,7 @@ export function CartIconButton() {
   return (
     <Link
       href="/checkout"
-      className="relative grid h-9 w-9 place-items-center rounded-full text-achira-blue/60 transition-all hover:bg-white/60 hover:text-achira-blue-dark active:scale-90 dark:text-achira-cream/60 dark:hover:bg-white/8 dark:hover:text-achira-cream"
+      className="relative grid h-9 w-9 place-items-center rounded-full text-achira-cream/60 active:opacity-60"
       aria-label="Сагс"
     >
       <ShoppingBag className="h-[17px] w-[17px]" strokeWidth={1.5} />

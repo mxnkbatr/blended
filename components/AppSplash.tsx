@@ -6,15 +6,15 @@ import { Capacitor } from "@capacitor/core";
 import { SplashScreen } from "@capacitor/splash-screen";
 import { AchiraWordmark } from "./AchiraWordmark";
 
-const SPLASH_MS = 850;
-const FADE_MS = 280;
-const FAILSAFE_MS = 2200;
+const SPLASH_MS = 900;
+const FADE_MS = 320;
+const FAILSAFE_MS = 2800;
 const SESSION_KEY = "achira:splash:v1";
 
-async function hideNativeSplash() {
+async function hideNativeSplash(fadeMs = 200) {
   if (!Capacitor.isNativePlatform()) return;
   try {
-    await SplashScreen.hide();
+    await SplashScreen.hide({ fadeOutDuration: fadeMs });
   } catch {
     // Plugin unavailable
   }
@@ -28,24 +28,30 @@ export function AppSplash() {
     setMounted(true);
 
     if (sessionStorage.getItem(SESSION_KEY) === "1") {
-      void hideNativeSplash();
+      void hideNativeSplash(0);
       setPhase("done");
       return;
     }
 
     sessionStorage.setItem(SESSION_KEY, "1");
 
-    // Native Capacitor splash — шууд нууна (React splash дээр үлдэнэ)
-    void hideNativeSplash();
+    // Reveal React splash under native splash (same #0d1728), then fade native away
+    const reveal = window.requestAnimationFrame(() => {
+      void hideNativeSplash(280);
+    });
 
     const fadeTimer = window.setTimeout(() => setPhase("fade"), SPLASH_MS);
-    const hideTimer = window.setTimeout(() => setPhase("done"), SPLASH_MS + FADE_MS);
+    const hideTimer = window.setTimeout(
+      () => setPhase("done"),
+      SPLASH_MS + FADE_MS,
+    );
     const failsafeTimer = window.setTimeout(() => {
-      void hideNativeSplash();
+      void hideNativeSplash(0);
       setPhase("done");
     }, FAILSAFE_MS);
 
     return () => {
+      window.cancelAnimationFrame(reveal);
       window.clearTimeout(fadeTimer);
       window.clearTimeout(hideTimer);
       window.clearTimeout(failsafeTimer);
@@ -70,10 +76,10 @@ export function AppSplash() {
         priority
       />
       <div className="mt-4">
-        <AchiraWordmark size="lg" />
+        <AchiraWordmark size="lg" light />
       </div>
-      <div className="mt-8 h-1 w-24 overflow-hidden rounded-full bg-achira-blue/10 dark:bg-achira-cream/10">
-        <div className="h-full w-1/2 animate-[splash-load_1.2s_ease-in-out_infinite] rounded-full bg-achira-blue dark:bg-achira-cream" />
+      <div className="mt-8 h-1 w-24 overflow-hidden rounded-full bg-achira-cream/10">
+        <div className="h-full w-1/2 animate-[splash-load_1.2s_ease-in-out_infinite] rounded-full bg-achira-cream" />
       </div>
     </div>
   );

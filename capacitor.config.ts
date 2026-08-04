@@ -21,14 +21,15 @@ const config: CapacitorConfig = {
   },
   plugins: {
     SplashScreen: {
-      launchShowDuration: 1500,
-      launchAutoHide: true,
-      backgroundColor: "#f4efe6",
+      // Keep native splash until AppSplash mounts (same navy bg = seamless)
+      launchShowDuration: 0,
+      launchAutoHide: false,
+      backgroundColor: "#0d1728",
       showSpinner: false,
     },
     StatusBar: {
       style: "LIGHT",
-      backgroundColor: "#f4efe6",
+      backgroundColor: "#0d1728",
     },
   },
 };

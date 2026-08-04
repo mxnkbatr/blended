@@ -51,6 +51,28 @@ export async function fetchPublishedNews(limit = 40): Promise<NewsPost[]> {
   return (data ?? []).map(mapPost);
 }
 
+
+export async function fetchPublishedNewsSlugs(limit = 200): Promise<string[]> {
+  const supabase = createSupabaseBrowserClient();
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from("news_posts")
+    .select("slug")
+    .eq("published", true)
+    .order("published_at", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    console.warn("[supabase] fetchPublishedNewsSlugs:", error.message);
+    return [];
+  }
+
+  return (data ?? [])
+    .map((row) => row.slug)
+    .filter((slug): slug is string => typeof slug === "string" && slug.length > 0);
+}
+
 export async function fetchNewsBySlug(slug: string): Promise<NewsPost | null> {
   const supabase = createSupabaseBrowserClient();
   if (!supabase) return null;
