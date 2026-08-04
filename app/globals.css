@@ -85,47 +85,12 @@ body {
   body {
     -webkit-overflow-scrolling: touch;
     -webkit-touch-callout: none;
-    /* App-like: no accidental text select while scrolling */
-    -webkit-user-select: none;
-    user-select: none;
-  }
-
-  input,
-  textarea,
-  [contenteditable="true"] {
-    -webkit-user-select: text;
-    user-select: text;
   }
 
   a,
   button {
     touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
   }
-
-  /* Soften website-y multi-layer body wash on phones */
-  body {
-    background-attachment: scroll;
-  }
-}
-
-/* Capacitor shell — harder native chrome */
-.native-app {
-  -webkit-touch-callout: none;
-}
-
-.native-app body {
-  overscroll-behavior: none;
-  cursor: default;
-}
-
-.native-app a {
-  -webkit-touch-callout: none;
-}
-
-.native-app img {
-  -webkit-user-drag: none;
-  user-select: none;
 }
 
 @keyframes splash-load {
